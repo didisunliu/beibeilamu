@@ -1,0 +1,13 @@
+{
+  "restful": {
+    "service": "https://gateway.cnhnb.com/monk",
+    "img": "http://img.cnhnb.com/",
+    "supplyAddress": "https://mobile.cnhnb.com/html/supply/detail.html?d="
+  },
+  "serviceOnline": {
+    "banana": "https://truffle.cnhnb.com/banana",
+    "appKey": "d609ba5000da49a809a2efc9d77290f8",
+    "gateway": "https://gateway.cnhnb.com/monk",
+    "image": "http://img.cnhnb.com/"
+  }
+}
