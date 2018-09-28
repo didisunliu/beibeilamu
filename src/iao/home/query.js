@@ -1,42 +1,62 @@
 import request from '@/utils/request'
 
-// 保障金零批查询
-export function querySmallBatch(data) {
+
+
+// 供应列表接口
+export function getSupplyList(data) {
 	return request({
-		url: '/esearch/smallBatch/v1/querySmallBatch',
+		url: '/api/product/queryProduct',
 		method: 'post',
-		data
+		params: data
 	})
 }
-// 热门保障金零批推荐
-export function queryHotSmallBatch(data) {
+// 供应详情接口
+export function getProductInfo(data) {
 	return request({
-		url: '/esearch/smallBatch/v1/queryHotSmallBatch',
+		url: '/api/product/getProductInfo',
 		method: 'post',
-		data
+		params: data
 	})
 }
-// 类目推荐接口
-export function getBehaviorCate(deviceId, length, hnUserId) {
+
+// 发送短信
+export function sendCode(data) {
 	return request({
-		url: '/esearch/smallBatch/v1/getBehaviorCate',
+		url: '/api/sms/send',
 		method: 'post',
-		params: {
-			deviceId, // 设备号
-			length,
-			hnUserId
-		}
+		params: data
 	})
 }
-// 供应推荐接口
-export function getBehaviorSupply(deviceId, length, hnUserId) {
+// 短信验证
+export function cryCode(data) {
 	return request({
-		url: '/esearch/smallBatch/v1/getBehaviorSupply',
+		url: '/api/sms/verify',
 		method: 'post',
-		params: {
-			deviceId, // 设备号
-			length,
-			hnUserId
-		}
+		params: data
+	})
+}
+
+// 请求微信信息
+export function getWeixinUserInfo(data) {
+	return request({
+		url: '/weixin/ticket/getWeixinUserInfo',
+		method: 'post',
+		params: data
+	})
+}
+// 登录 
+export function loginAndReg(data) {
+	return request({
+		url: '/api/member/loginAndReg',
+		method: 'post',
+		params: data
+	})
+}
+// 根据openId获取消费者
+export function getMemberByOpenId(data) {
+	return request({
+		url: '/api/member/getMemberByOpenId',
+		method: 'post',
+		params: data
 	})
 }

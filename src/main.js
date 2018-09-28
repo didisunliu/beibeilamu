@@ -1,9 +1,8 @@
 import Vue from 'vue';
-import { peachInstall } from './lib/peach'
-Vue.use(peachInstall)
+//import { peachInstall } from './lib/peach'
+//Vue.use(peachInstall)
 
-import PeachEvent from './directives/peach-event'
-Vue.directive(PeachEvent.name, PeachEvent)
+
 import { utilsInstall } from './utils'
 Vue.use(utilsInstall)
 import { configPlugin } from './config'

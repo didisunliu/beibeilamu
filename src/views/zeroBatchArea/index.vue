@@ -10,7 +10,7 @@
             fdf
         </van-nav-bar> -->
         <div class="userInfo">
-                <van-search placeholder="请输入搜索关键词" v-model="value" />
+                <van-search placeholder="请输入搜索关键词" v-model="value" @input="onSearch" />
                 <!-- <van-search
                 v-model="value"
                 placeholder="请输入搜索关键词"
@@ -32,30 +32,27 @@
               </div>
         </div>
 
-        <van-list v-model="loading" :finished="finished" @load="onLoad" class="glist">
+        <van-list v-model="loading" :finished="finished" @load="onLoad" :offset="10" class="glist">
             
-            <van-cell v-for="(item,index) in list" :key="item" class="goodsItem" @click="goDetail" >
-                <p class="shoptitle">本商品由优选超市提供</p>
-                <p v-if="index==0" class="pos"><img src="/static/images/goods1.png" class="goodsImg" /> <b class="pos1">绵柔舒适，优选进口原生木浆</b> <b class="pos2">十点爆款</b></p>
-                <p class="over" v-else-if="index==1"><img src="/static/images/goods2.png" class="goodsImg" />
-                    <span>已售罄</span>
+            <van-cell v-for="(item,index) in list"  class="goodsItem" >
+                <p class="shoptitle">{{item.supplier}}</p>
+                <p class="" :class="item.state==3 ? 'over' : 'pos' "  @click="goDetail(item.productId)"><img :src="item.mainPictureUrl | Imgurl" class="goodsImg" /> <b class="pos1">{{item.subtitle}}</b> <b class="pos2">{{item.tag}}</b>
+                <span v-if="item.state==3">已售罄</span>
                 </p>
-                <p v-else-if="index==2"><img src="/static/images/goods3.png" class="goodsImg" /></p>
-                <p v-else><img src="/static/images/goods1.png" class="goodsImg" /></p>
-                <p class="goodsTitle">全成百利包豆奶   188ml/包 </p>
-                <p class="redp">预售时间：9月1日<span>已售 <b>5000</b> 份/ 限量5000份</span></p>
-                <p class="redp">提货时间：9月2日</p>
-                <p class="redp">￥<big>9.9</big> <del>￥20</del></p>
+                <p class="goodsTitle"  @click="goDetail(item.productId)">{{item.title}}   <br><span class="guige">{{item.specification}}</span> </p>
+                <p class="redp"><template v-if="item.presellTime">预售时间：{{item.presellTime | formatDate}}</template><span>已售 <b>{{item.soldNumber}}</b> 份<template v-if="item.numberType==2">/ 限量{{item.number}}份</template></span></p>
+                <p class="redp"  v-if="item.pickupTime">提货时间：{{item.pickupTime | formatDate}}</p>
+                <p class="redp">￥<big>{{item.price}}</big> <del>￥{{item.originalPrice}}</del></p>
                 <b class="like"><van-icon name="like-o"  /> <i>关注</i></b> 
-                <a v-if="index==1" class="disable">加入购物车</a>
-                <a v-else>加入购物车</a>
+                <a v-if="item.state==3" class="disable">加入购物车</a>
+                <a v-else @click="addToCar(item)">加入购物车</a>
                 
             </van-cell>
             
         </van-list>
         <van-tabbar v-model="active" fixed @change="goPage">
             <van-tabbar-item icon="shop">店铺</van-tabbar-item>
-            <van-tabbar-item icon="shopping-cart" info="5">购物车</van-tabbar-item>
+            <van-tabbar-item icon="shopping-cart" :info="carNum">购物车</van-tabbar-item>
             <van-tabbar-item icon="contact" >我的</van-tabbar-item>
             
         </van-tabbar>
@@ -66,9 +63,9 @@
 <script>
 
    
-    import { querySmallBatch, getBehaviorCate, getBehaviorSupply } from '@/iao/home/query'
+    import { getSupplyList,getMemberByOpenId } from '@/iao/home/query'
     import { Toast,List,NavBar,Cell,Search,Tabbar, TabbarItem,Icon  } from 'vant'
-    
+    import { dees } from '../../config'
 	export default {
 		name: 'ZeroBatchArea',
         computed: {
@@ -77,7 +74,8 @@
         },
         data() {
 			return {
-				active: 0,
+                active: 0,
+                carNum:null,
 				mailSpecial: [],
 				sellGoodGoods: [],
                 cateList: [],
@@ -85,51 +83,123 @@
                 list: [],
                 loading: false,
                 finished: false,
-                value:''
+                value:'',
+                formLine:{
+                    title:null,
+                    "pager.pageNum":1,
+                    "pager.pageSize":10,
+                    "pager.orderBy":null,
+                    "pager.orderType":null
+                    
+                },
+                wxinfo:null,
             }
         },
+        
         mounted() {
             //this.init()
             document.title = '雨花碧水龙庭店'
+            //this.wxinfo=JSON.parse(window.localStorage.getItem("wxinfo"))
+      
            
         },
-        watch:{
-            // $route(){
-            //     document.title="123",this.$route.meta.title
-            // }
-        },
+    
         methods: {
-            onLoad() {
+            addToCar(e){
+                this.carNum +=1
+            },
+            querySupply(d){
+                //console.log(123)
+                getSupplyList(d).then(res=>{
+                    //console.info(res.data)
+                   
+                    if(!res.code){
+                        if(res.data.length==0){
+                            this.finished = true;
+                        }else{
+                             this.list=res.data
+                             this.formLine["pager.pageNum"]=this.formLine["pager.pageNum"]+1
+                           //  console.log(this.formLine["pager.pageNum"])
+                             if(res.data.length<10){
+                                  this.finished = true;
+                             }
+                            this.loading = false;
+                        }
+                    }else{
+                         this.finished = true;
+                    }
+                    
+                })
+            },
+            onLoad() { 
+              setTimeout(() => {
+                this.querySupply(this.formLine)
+                }, 100);
                 
-                console.info(this.$route.meta.title)
-                setTimeout(() => {
-                    for (let i = 0; i < 5; i++) {
-                    this.list.push(this.list.length + 1);
-                    }
-                    this.loading = false;
-
-                    if (this.list.length >= 20) {
-                    this.finished = true;
-                    }
-                }, 300);
             },
-            onSearch(){
-
+            onSearch(r){
+                //console.log(r)
+                this.formLine.title=r
+                 this.formLine["pager.pageNum"]=1
+                getSupplyList(this.formLine).then(res=>{
+                    //console.info(res.data)
+                   
+                    if(!res.code){
+                        this.list=res.data
+                    }
+                    
+                })
             },
-            goDetail(){
-                this.$router.push('/detail');
+            goDetail(d){
+                this.$router.push('/detail?pid='+d);
             },
             goPage(a){
-                console.log(a)
-                if(a==1){
-                    this.$router.push('/car');  
-                }else if(a==2){
-                    this.$router.push('/user');  
-                }
+                //console.log(a)
+                let url="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx43fd4135600dcee3&redirect_uri="+dees.limitUrl+"&response_type=code&scope=snsapi_userinfo&state="+a+"#wechat_redirect"
+                
+                window.location.href=url
+               
+                // if(!this.wxinfo){
+                   
+                // }else{
+                //     this.checkout(a)
+                // }
+                
                 //this.$router.push('/detail');
             },
             goBack(){
                 this.$router.back(-1)
+            },
+            checkout(a) {
+                getMemberByOpenId({
+                    openId: this.wxinfo.openid
+                }).then(res => {
+                    if (!res.code) {
+                   // this.oid = JSON.stringify(res);
+                    if (!res.data) {
+                        let url=dees.limitUrl
+                        //没有数据要全部确认信息提交
+                        window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx43fd4135600dcee3&redirect_uri="+url+"&response_type=code&scope=snsapi_userinfo&state="+a+"1#wechat_redirect"
+                    } else {
+                        if (res.data.state == 2) {
+                            localStorage.setItem('userinfo', JSON.stringify(res.data));
+                            //已经登录  已经登录应该不会进入此页面
+                            if (a == 1) {
+                                this.$router.push("/car");
+                                //window.location.href="/car?form=limit"
+                            } else if (a == 2) {
+                                this.$router.push("/user");
+                            }
+                        
+                        } else {
+                            //没有登录 请登录
+                           //this.loginState=false
+                           this.$router.push("/loginment");
+                        //this.$router.push("/login?form=limit");
+                        }
+                    }
+                    }
+                });
             },
 	        
 
@@ -143,10 +213,34 @@
             [TabbarItem.name]: TabbarItem,
             [NavBar.name]: NavBar,
             [Icon.name]: Icon
-        }
+        },
+        filters: {
+            formatDate: function (value) {
+                if (!value) return ''
+                let date = new Date(value)
+                let year = date.getFullYear()
+                let month = date.getMonth() + 1
+                let day = date.getDate()
+                let h = date.getDate()
+                let m = date.getDate()
+                let s = date.getDate()
+                value = month + '月' + day +"日"+" "+h+":"+m
+                return value
+            },
+            Imgurl: function (value) {
+                if (!value) return ''
+               
+                value ="http://mgr.hnkbmd.com"+value
+                return value
+            }
+        },
 	}
 </script>
 <style rel="stylesheet/scss" lang="scss" scoped>
+.guige{
+    color: #888;
+    font-size: 12px;
+}
 .pos{
     position: relative;
     .pos1{
@@ -317,7 +411,7 @@
         .redp{
             color:#ff0000;
             font-size: 12px;
-            line-height: 20px;
+            line-height: 26px;
             span{
                 color:#888;
                 float:right;

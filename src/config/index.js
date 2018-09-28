@@ -14,7 +14,13 @@ const configPlugin = {
 		Vue.prototype.$service = serviceConfig
 	}
 }
+const dees={
+	limitUrl:"http%3a%2f%2fyx.jytzn.com%2f%23%2fgetInfo",
+	domain:"http://yx.jytzn.com/"
+	
+}
 export {
-	configPlugin
+	configPlugin,
+	dees
 }
 export default serviceConfig

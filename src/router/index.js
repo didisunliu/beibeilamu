@@ -1,7 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import { $app } from '../lib/hybrid'
-import { $peach } from '../lib/peach'
 const _import = require('./_import_' + process.env.NODE_ENV)
 Vue.use(Router)
 
@@ -30,9 +28,9 @@ const router = new Router({
 	    },
 	   
 	    {
-		    path: '/car',
-			component: _import('zeroBatchArea/car'),
-		    name: 'ZeroBatchAreaCar',
+		    path: '/mycar',
+			component: _import('zeroBatchArea/mycar'),
+		    name: '购物车',
 		    meta: {title: '购物车', keepAlive: false}
 	    },
 	    {
@@ -111,6 +109,20 @@ const router = new Router({
 		    name: '登录',
 			meta: {title: '登录', keepAlive: false} 
 			
+		},
+		{
+		    path: '/loginment',
+		    component: _import('zeroBatchArea/loginment'),
+		    name: '登录',
+			meta: {title: '登录', keepAlive: false} 
+			
+		},
+		{
+		    path: '/getInfo',
+		    component: _import('zeroBatchArea/getInfo'),
+		    name: '获取微信信息',
+			meta: {title: '获取微信信息', keepAlive: false}  
+			
 	    },
 	    {
 		    path: '*',
@@ -121,17 +133,18 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-	if (to.meta.needLogin) {
-		$app.login().then(() => {
-			next()
-		})
-	} else {
-		if (to.meta.peach) {
-			$peach.init(to.meta.peach.id, to.meta.peach.name)
-		}
-		document.title = to.meta.title
-		//document.getElementById('titleId').innerHTML = '要设置的标题'
+	document.title = to.meta.title
 		next()
-	}
+	// if (to.meta.needLogin) {
+	// 	$app.login().then(() => {
+	// 		next()
+	// 	})
+	// } else {
+	// 	if (to.meta.peach) {
+	// 		$peach.init(to.meta.peach.id, to.meta.peach.name)
+	// 	}
+	// 	document.title = to.meta.title
+	// 	next()
+	// }
 })
 export default router

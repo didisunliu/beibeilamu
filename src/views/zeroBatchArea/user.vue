@@ -14,6 +14,7 @@
                         <span @click="show=true"><van-icon name="qr" /></span>
                       </div>
                 </div> 
+                {{userinfo}}
             <van-cell-group>
                     
                 <van-cell title="全部订单" icon="pending-orders" is-link to="/orderlist" />
@@ -54,7 +55,9 @@
 				active: 0,
                 show:false,
                 result:["a"],
-                imageURL:"/static/images/qq.png"
+                imageURL:"/static/images/qq.png",
+                wxinfo:window.localStorage.getItem("wxinfo"),
+                userinfo:window.localStorage.getItem("userinfo")
             }
         },
         mounted() {
@@ -102,7 +105,7 @@
         
     }
     .content{
-        margin: 45px 0px;
+        margin: 45px 0px 0 0;
        
         .infomation{
         background: #fff;

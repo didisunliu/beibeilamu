@@ -3,15 +3,20 @@
 
         <van-nav-bar title="登录" fixed> </van-nav-bar>
         <div class="content">
+           
+             <van-cell-group>
 
-            <van-cell-group>
+                
+            
 
+                
                 <van-field v-model="phone" label="手机号" placeholder="请输入手机号" :error-message="error" />
                 <van-field v-model="sms" center clearable label="短信验证码" placeholder="请输入短信验证码">
-                    <van-button slot="button" size="small" type="primary">发送验证码</van-button>
+                    <van-button slot="button" size="small" @click="sendCode" type="primary">发送验证码</van-button>
                 </van-field>
+
             </van-cell-group>
-            <div class="sub"><van-button size="large" type="primary" >登录</van-button></div>
+            <div class="sub"><van-button size="large" type="primary" @click="onSubmit" >登 录</van-button></div>
 
         </div>
 
@@ -25,7 +30,7 @@
 <script>
 
 
-    import { querySmallBatch, getBehaviorCate, getBehaviorSupply } from '@/iao/home/query'
+    import { sendCode,loginAndReg } from '@/iao/home/query'
     import { Toast, Field, NavBar, Cell, CellGroup,Button } from 'vant'
 
     export default {
@@ -39,41 +44,74 @@
 
                 phone: "",
                 error: null,
-                sms:''
+                name:'',
+                openid:'',
+                headImg:"dd",
+                sms:'',
+                info:{},
+                mm:''
+
             }
         },
         mounted() {
-            //this.init()
+            this.info=JSON.parse(localStorage.getItem('wxinfo'))
+            
+            this.headImg=this.info.headimgurl
+            this.name=this.info.nickname
+            this.openid=this.info.openid
+            
+          
         },
         methods: {
-            onClickMiniBtn() {
-
+            
+            sendCode(){
+                sendCode({
+                    mobile:this.phone,
+                    tag:"1"
+                }).then(res=>{
+                    console.log(res)
+                    if(!res.code){
+                        Toast('短信已经发出！');
+                    }
+                })
             },
-            onClickBigBtn() {
-
-            },
-            onSearch() {
-
-            },
+           
             goBack() {
                 this.$router.back(-1)
             },
-            onLoad() {
-                setTimeout(() => {
-                    for (let i = 1; i < 7; i++) {
-                        this.list.push(this.list.length + 1);
+            
+            
+         
+            
+            onSubmit(){
+                let d={
+                    head:this.headImg,
+                    name:this.name,
+                    mobile:this.phone,
+                    openId:this.openid, 
+                    code:this.sms,
+                    tag:"1"
+                }
+               
+                loginAndReg(d).then(res=>{
+                    if(!res.code){
+                        localStorage.setItem('userinfo', JSON.stringify(res.data));
+                        //this.mm=JSON.stringify(res.data)
+                        if(this.$router.query.state==1){
+                            this.$router.push("/car?form=limit");
+                        }else{
+                            this.$router.push("/user?form=limit");
+                        }
+                        
+                    }else{
+                        Toast(res.msg); 
                     }
-                    this.loading = false;
-
-                    if (this.list.length >= 40) {
-                        this.finished = true;
-                    }
-                }, 500);
-            },
-            changeTab(e) {
-
-
+                    
+                    //alert(JSON.stringify(res))
+                })
             }
+
+
 
 
 
@@ -100,6 +138,20 @@
     }
 .sub{
     margin: 12px;
+}
+.wrigteBg{
+    background: #fff;
+    padding: 15px;
+    text-align: center;
+    color: #999;
+    line-height: 25px;
+}
+.headImg{
+    width: 60px;
+    height: 60px;
+    display: block;
+    margin: auto;
+    border-radius: 50%;
 }
     .fl {
         float: right;

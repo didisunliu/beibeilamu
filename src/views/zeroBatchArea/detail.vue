@@ -63,50 +63,52 @@
                     <van-icon name="home" class="homePage" @click="goHome" />
                     <van-icon name="contact" class="userPage" @click="goUser" />
                     <van-swipe :autoplay="3000" class="banner">
-                            <van-swipe-item>
-                                <img src="/static/images/goods1.png" class="tImg" />
+                            <van-swipe-item v-for="item in productInfo.pictures">
+                                <img :src="item.url | Imgurl" class="tImg" />
                             </van-swipe-item>
-                            <van-swipe-item><img src="/static/images/goods1.png" class="tImg" /></van-swipe-item>
-                            <van-swipe-item><img src="/static/images/goods1.png" class="tImg" /></van-swipe-item>
-                            <van-swipe-item><img src="/static/images/goods1.png" class="tImg" /></van-swipe-item>
+                           
                         </van-swipe>
                         <div class="productcontentBox2">
                                 <div class="realPrice">
-                                 <small>￥</small>7.9 
+                                 <small>￥</small>{{productInfo.price}} 
                                 </div> 
                                 <div class="marketPrice">
-                                  ￥17 
+                                  ￥{{productInfo.originalPrice}}
                                 </div> 
                                 <div class="text">
                                   距离本商品结束还剩： 
                                 </div> 
-                                <div class="countDown">
-                                 <span id="t_h">05</span>
+                                
+                                <div class="countDown" >
+                                  <span id="product-sec-countdown"></span>
+                                 
+                                 <!-- <span id="t_h">05</span>
                                  <i>:</i>
                                  <span id="t_m">33</span>
                                  <i>:</i>
-                                 <span id="t_s">51</span>
+                                 <span id="t_s">51</span> -->
                                 </div> 
-                                <!----> 
-                                <!---->
+                                
                         </div> 
                         <div class="productContentBox3">
                             <div class="title">
-                                好韵味茶油野山椒豆豉十蒜香剁辣椒 258g/瓶 2瓶/组
+                                {{productInfo.title}}
                             </div> 
                             <div class="subTitle">
                                 <div class="l">
-                                食欲跟随美味，选我所爱、生活有时需要加点辣味。
+                                    {{productInfo.subtitle}}
+                               
                                 </div> 
-                                <span class="rinkpeople">关注人数:23947</span>
+                                <span class="rinkpeople">关注人数:{{productInfo.subscribers}}</span>
                             </div> 
                             <div class="pickUpTime">
-                                <p>预售时间:9月2日</p> 
-                                <p>提货时间:09月03日 16:00 </p> 
+                                <p v-if="productInfo.presellTime">预售时间:{{productInfo.presellTime | formatDate}}</p> 
+                                <p v-if="productInfo.pickupTime" >提货时间:{{productInfo.pickupTime | formatDate}} </p> 
                                 <div class="number">
                                 已售 
-                                <span class="red">3267</span> 份 
-                                <i>/ 限量 <span>10000</span> 份</i>
+                                <span class="red">{{productInfo.soldNumber}}</span> 份 
+                              
+                                <i v-if="productInfo.numberType==2">/ 限量 <span>{{productInfo.number}}</span> 份</i>                                
                                 </div> 
                                 <!---->
                             </div>
@@ -117,15 +119,19 @@
                             
                         </div>
             
-                        <div class="productContentBox5"><div class="tit">商品详情</div> <div class="information"><ul class="info"><li>供应商：</li> <li><span>哲童电子商务</span></li> <li>品牌：</li> <li><span>好韵味</span></li> <li>规格：</li> <li><span>野山椒豆豉十剁辣椒各1瓶 2瓶/组</span></li> <li>产地：</li> <li><span>中国</span></li></ul></div></div>
+                        <div class="productContentBox5"><div class="tit">商品详情</div> <div class="information"><ul class="info"><li>供应商：</li> <li><span>{{productInfo.supplier}}</span></li> <li>品牌：</li> <li><span>{{productInfo.brand}}</span></li> <li>规格：</li> <li><span>{{productInfo.specification}}</span></li> <li>产地：</li> <li><span>{{productInfo.originPlace}}</span></li></ul></div></div>
             
                         <div class="productContentBox5">
                             <div class="tit">图文详情</div> 
-                            <p>强烈推荐：食欲跟随美味，选我所爱、生活有时需要加点辣味。</p>
+                            <div class="desc" v-html="productInfo.description">
+
+                            </div>
+                         
+                            <!-- <p>强烈推荐：食欲跟随美味，选我所爱、生活有时需要加点辣味。</p>
                             <p>食欲跟随美味，选我所爱、生活有时需要加点辣味。</p>
                             <div class="goodsimgs">
                                 <img src="/static/images/s123.jpg" alt="">
-                            </div>
+                            </div> -->
                           
                         </div>
             </div>
@@ -145,7 +151,7 @@
 
         
         <van-goods-action> 
-            <van-goods-action-mini-btn icon="cart"  info="5" text="购物车" @click="onClickMiniBtn" />
+            <van-goods-action-mini-btn icon="cart"  :info="carNum" text="购物车" @click="onClickMiniBtn" />
             <van-goods-action-mini-btn icon="like-o"  text="关注"  />
             <van-goods-action-big-btn text="加入购物车" @click="onClickBigBtn" />
             <van-goods-action-big-btn text="立即购买" @click="onClickBigBtn" primary />
@@ -157,18 +163,16 @@
 <script>
 
    
-    import { querySmallBatch, getBehaviorCate, getBehaviorSupply } from '@/iao/home/query'
+    import { getProductInfo } from '@/iao/home/query'
     import { Toast,NavBar,GoodsAction, GoodsActionBigBtn, GoodsActionMiniBtn,Icon , Tab, Tabs,Swipe, SwipeItem,Stepper  } from 'vant'
-    
+
 	export default {
 		name: 'ZeroBatchArea',
-        computed: {
-            
-            
-        },
+        
         data() {
 			return {
-				active: 0,
+                active: 0,
+                carNum:null,
 				mailSpecial: [],
 				sellGoodGoods: [],
                 cateList: [],
@@ -177,18 +181,101 @@
                 loading: false,
                 finished: false,
                 value:1,
+                timeD:'',
+                productInfo:{},
                 img:"/static/images/qq.png"
             }
         },
+        filters: {
+            formatDate: function (value) {
+                if (!value) return ''
+                let date = new Date(value)
+                let year = date.getFullYear()
+                let month = date.getMonth() + 1
+                let day = date.getDate()
+                let h = date.getDate()
+                let m = date.getDate()
+                let s = date.getDate()
+                value = month + '月' + day +"日"+" "+h+":"+m
+                return value
+            },
+            Imgurl: function (value) {
+                if (!value) return ''
+               
+                value ="http://mgr.hnkbmd.com"+value
+                return value
+            }
+        },
         mounted() {
-	        //this.init()
+            //this.init()
+            this.queryProductInfo()
+            
         },
         methods: {
+            countdown (sec) {
+                setTimeout(function () {
+                    var hour = 0
+                    var minute = 0
+                    var second = 0
+                    var day=0
+                    setInterval(function () {
+                    if (sec >= 60) {
+                        minute = Math.floor(sec / 60)
+                        second = Math.floor(sec % 60)
+                        if (minute >= 60) {
+                             hour = Math.floor(minute / 60)
+                                minute = minute % 60
+                            // if(hour>=24){
+                            //     day = Math.floor(hour / 24)
+                            //     hour = hour % 24
+                            // }
+                        
+                        } else {
+                            hour = 0
+                            }
+                    } else {
+                        second = sec
+                        hour = 0
+                        minute = 0
+                    }
+
+                    hour = hour*1 < 10 && hour*1 > 0 ? '0' + hour : hour
+                    minute = minute*1 < 10 && minute*1 > 0 ? '0' + minute : minute
+                    second = second*1 < 10 && second*1 > 0 ? '0' + second : second
+                    var countdownStr = hour + '：' + minute + '：' + second
+                    document.getElementById('product-sec-countdown').innerHTML = countdownStr
+                    //this.timeD=countdownStr
+                    sec--
+                    if (sec <= 0) {
+                        window.location.reload()
+                    }
+                    }, 1000)
+                }, 1000)
+                },
+            queryProductInfo(){
+                getProductInfo({
+                    productId:this.$route.query.pid
+                }).then(res=>{
+                    this.productInfo=res.data
+                    let date = new Date(res.data.offShelfTime)
+                    let d=(date.getTime()-res.data.currentTimeMillis)/1000
+                   
+                    this.$nextTick(() => {
+                        if(d>0){
+                            this.countdown(d) //结束时间到开始时间的时间差，单位秒
+                        }else{
+                            document.getElementById('product-sec-countdown').innerHTML="已结束"
+                        }
+                        
+                    })
+                    console.log(res)
+                })
+            },
             onClickMiniBtn() {
                 this.$router.push('/car');  
             },
             onClickBigBtn(){
-
+                this.carNum +=1
             },
             goBack(){
                 this.$router.back(-1)
@@ -222,6 +309,14 @@
     .clearfix:after{content:".";display:block;height:0;clear:both;visibility:hidden}
     .record,.pushaur{
         background: #fff;
+    }
+    .desc{
+        font-size: 12px;
+        padding: 10px;
+        color: #666;
+        img{
+            display: block;
+        }
     }
     .main {
         background-color: #f1f1f1;
@@ -324,7 +419,7 @@
 .productcontentBox2 .realPrice small{ font-size:16px}
 .productcontentBox2 .marketPrice{position:absolute; left:100px; top:20px; color:#FFF; font-size:14px; line-height:100%; text-decoration:line-through}
 .productcontentBox2 .text{ position: absolute; right:5px; top:1rem; font-size:1.2rem; line-height:1.2rem; color:#ffffff;}
-.productcontentBox2 .countDown{ position:absolute; width:8rem; height:1.6rem; bottom:0.6rem; right:0rem;  color:#ffffff}
+.productcontentBox2 .countDown{ position:absolute; width:10rem; height:1.6rem; bottom:0.6rem; right:0rem;  color:#ffffff}
 .productcontentBox2 .countDown span{  font-size:1.25rem; margin-left:0.3rem; margin-right:0.3rem  }
 .productcontentBox2 .countDown i{  font-style:normal; font-size:0.7rem; }
 .productContentBox3{ background:#FFF; width:100%; border-bottom:1px solid #E7E7E7; margin-bottom:0.375rem}
