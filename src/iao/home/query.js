@@ -52,10 +52,26 @@ export function loginAndReg(data) {
 		params: data
 	})
 }
+// out登录 
+export function loginOut(data) {
+	return request({
+		url: '/api/member/logout',
+		method: 'post',
+		params: data
+	})
+}
 // 根据openId获取消费者
 export function getMemberByOpenId(data) {
 	return request({
-		url: '/api/member/getMemberByOpenId',
+		url: '/api/member/getLoginMemberByOpenId',
+		method: 'post',
+		params: data
+	})
+}
+// 根据shopId获取店铺信息
+export function getShopDes(data) {
+	return request({
+		url: '/api/distributionRegion/getDistributionRegion',
 		method: 'post',
 		params: data
 	})

@@ -1,37 +1,37 @@
-let weeks = ['日', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二']
+// let weeks = ['日', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二']
 
-function _dataFormat (d, f) {
-	f = f || 'yyyy-MM-dd hh:mm:ss'
-	let w = '星期', r = {
-		yyyy: d.getFullYear(),
-		MM: d.getMonth() + 1,
-		dd: d.getDate(),
-		hh: d.getHours(),
-		mm: d.getMinutes(),
-		ss: d.getSeconds(),
-		ww: w + weeks[d.getDay()]
-	}
-	for (let k in r) {
-		let v = r[k]
-		if (k != 'yyyy' && v < 10) r[k] = '0' + v
-	}
-	return f.replace(/(?!\\)(yyyy|MM|dd|hh|mm|ss|ww)/gi, function (f) {
-		return r[f]
-	})
-}
-function left_zero_4(str) {
-	if (str != null && str != '' && str != 'undefined') {
-		if (str.length == 2) {
-			return '00' + str;
-		}
-	}
-	return str;
-}
-function toDate (v) {
-	let t
-	typeof v == 'string' && (t = v.indexOf('-') != -1 ? new Date(Date.parse(v.replace(/-/g, '/'))) : new Date(Number(v)))
-	return !t && (t = new Date(v)), t
-}
+// function _dataFormat (d, f) {
+// 	f = f || 'yyyy-MM-dd hh:mm:ss'
+// 	let w = '星期', r = {
+// 		yyyy: d.getFullYear(),
+// 		MM: d.getMonth() + 1,
+// 		dd: d.getDate(),
+// 		hh: d.getHours(),
+// 		mm: d.getMinutes(),
+// 		ss: d.getSeconds(),
+// 		ww: w + weeks[d.getDay()]
+// 	}
+// 	for (let k in r) {
+// 		let v = r[k]
+// 		if (k != 'yyyy' && v < 10) r[k] = '0' + v
+// 	}
+// 	return f.replace(/(?!\\)(yyyy|MM|dd|hh|mm|ss|ww)/gi, function (f) {
+// 		return r[f]
+// 	})
+// }
+// function left_zero_4(str) {
+// 	if (str != null && str != '' && str != 'undefined') {
+// 		if (str.length == 2) {
+// 			return '00' + str;
+// 		}
+// 	}
+// 	return str;
+// }
+// function toDate (v) {
+// 	let t
+// 	typeof v == 'string' && (t = v.indexOf('-') != -1 ? new Date(Date.parse(v.replace(/-/g, '/'))) : new Date(Number(v)))
+// 	return !t && (t = new Date(v)), t
+// }
 
 const $utils = {
 	isIos: function () {

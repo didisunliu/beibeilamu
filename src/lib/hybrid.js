@@ -68,13 +68,13 @@ $app.init = function () {
 					return this.settings[f]
 				},
 				gotoNative: function (page, params) {
-					console.log('打开原生页面 -> ', page, ' 参数 -> ', params)
+					//console.log('打开原生页面 -> ', page, ' 参数 -> ', params)
 				},
 				putData: function (type, params) {
-					console.log('调用[putData]方法 -> ' + type, ' 参数 -> ', params)
+					//console.log('调用[putData]方法 -> ' + type, ' 参数 -> ', params)
 				},
 				doAction: function (type, params) {
-					console.log('调用[doAction]方法 -> ' + type, ' 参数 -> ', params)
+					//console.log('调用[doAction]方法 -> ' + type, ' 参数 -> ', params)
 				}
 			}
 		}
@@ -91,7 +91,7 @@ $app.init = function () {
 		let f = fs[i]
 		settings[f] = $app.HnJsBridge.getData(f, '')
 	}
-	console.log(settings)
+	//console.log(settings)
 	$app.settings = settings
 
 	/**

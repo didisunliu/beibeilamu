@@ -102,3 +102,18 @@ export function html2Text(val) {
 export function toThousandslsFilter(num) {
 	return (+num || 0).toString().replace(/^-?\d+/g, m => m.replace(/(?=(?!\b)(\d{3})+$)/g, ','))
 }
+
+
+export function formatDate(value) {
+	if (!value) return ''
+	value=value.replace(/\s+/g,'T') 
+	let date = new Date(value)
+	let year = date.getFullYear()
+	let month = date.getMonth() + 1
+	let day = date.getDate()
+	let h = date.getDate()
+	let m = date.getDate()
+	let s = date.getDate()
+	value = month + '月' + day +"日"+" "+h+":"+m
+	return value
+}

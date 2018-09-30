@@ -15,7 +15,7 @@ const configPlugin = {
 	}
 }
 const dees={
-	limitUrl:"http%3a%2f%2fyx.jytzn.com%2f%23%2fgetInfo",
+	limitUrl:"http%3a%2f%2fyx.jytzn.com%2f%23%2floginment",
 	domain:"http://yx.jytzn.com/"
 	
 }

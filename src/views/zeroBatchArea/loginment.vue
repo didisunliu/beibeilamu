@@ -1,7 +1,7 @@
 <template>
     <Layout class="main">
 
-        <van-nav-bar title="个人信息确认" fixed> </van-nav-bar>
+        <van-nav-bar :title="pagetitle" fixed> </van-nav-bar>
         
         <div class="content" v-if="loginState">
             <div class="wrigteBg">
@@ -15,27 +15,23 @@
                 <van-field v-model="name" label="姓名" />
                 <van-field v-model="phone" label="手机号" placeholder="请输入手机号" :error-message="error" />
                 <van-field v-model="sms" center clearable label="短信验证码" placeholder="请输入短信验证码">
-                    <van-button slot="button" size="small" @click="sendCode" type="primary">发送验证码</van-button>
+                    <van-button slot="button" size="small" @click="sendCode" type="primary" :disabled="dis">发送验证码</van-button>
                 </van-field>
 
             </van-cell-group>
             <div class="sub"><van-button size="large" type="primary" @click="onSubmit" >确 定</van-button></div>
-<p>{{state}}</p>
-         <p>{{datas}}</p>
-         <p>{{oid}}</p>
+
         </div>
         <div v-else class="content">
            
              <van-cell-group>
                 <van-field v-model="phone" label="手机号" placeholder="请输入手机号" :error-message="error" />
                 <van-field v-model="sms" center clearable label="短信验证码" placeholder="请输入短信验证码">
-                    <van-button slot="button" size="small" @click="sendCode" type="primary">发送验证码</van-button>
+                    <van-button slot="button" size="small" @click="sendCode" type="primary" :disabled="dis">{{sendtext}}</van-button>
                 </van-field>
             </van-cell-group>
             <div class="sub"><van-button size="large" type="primary" @click="onSubmit" >登 录</van-button></div>
-            <p>{{state}}</p>
-         <p>{{datas}}</p>
-         <p>{{oid}}</p>
+          
 
         </div>
 
@@ -60,52 +56,80 @@ export default {
   computed: {},
   data() {
     return {
+      pagetitle: "登录",
+      sendtext: "发送验证码",
       phone: "",
-      loginState:false,
+      loginState: false,
+      dis: false,
       error: null,
       name: "",
       openid: "",
       headImg: "dd",
-      codename:"code",
+      codename: "code",
       sms: "",
       info: {},
       state: "",
       datas: "",
       oid: "",
-      wxinfo:null
+      count: '',
+      timer: null,
+      wxinfo: null,
+      userinfo: null
     };
   },
   mounted() {
-
-    
-
     this.state = decodeURIComponent(
       (new RegExp("[?|&]" + "state" + "=" + "([^&;]+?)(&|#|;|$)").exec(
         location.href
       ) || [, ""])[1].replace(/\+/g, "%20")
     );
-
-    this.wxinfo = JSON.parse(localStorage.getItem("wxinfo"));
-     this.queryWeixinUserInfo();
-    // if(this.wxinfo){
+//window.localStorage.removeItem("wxinfo")
+    this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
+    //alert(window.localStorage.getItem("wxinfo"))
+    //this.queryWeixinUserInfo();
+    //return
+    if(!this.wxinfo){
+      this.queryWeixinUserInfo();
         
-    //     this.headImg = this.wxinfo.headimgurl;
-    //     this.name = this.wxinfo.nickname;
-    //     this.openid = this.wxinfo.openid;
-    // }else{
-    //     this.queryWeixinUserInfo();
-    // }
-    
+    }else{
+        this.headImg = this.wxinfo.headimgurl;
+        this.name = this.wxinfo.nickname;
+        this.openid = this.wxinfo.openid;
+    }
   },
   methods: {
+    
     sendCode() {
+      
       sendCode({
         mobile: this.phone,
         tag: "1"
       }).then(res => {
-        //console.log(res);
         if (!res.code) {
+          this.dis = true; 
           Toast("短信已经发出！");
+          const TIME_COUNT = 60;
+        if (!this.timer) {
+          this.count = TIME_COUNT;
+         
+          this.timer = setInterval(() => {
+           
+          if (this.count > 0 && this.count <= TIME_COUNT) {
+          
+            this.sendtext = "重新发送(" + this.count + ")";
+            this.count--;
+          } else {
+             
+            this.dis = false;
+             this.sendtext = "发送验证码";
+            clearInterval(this.timer);
+            this.timer = null;
+          }
+          }, 1000)
+        }
+         
+        }else{
+          Toast(res.msg)
         }
       });
     },
@@ -115,7 +139,11 @@ export default {
     // },
     queryWeixinUserInfo() {
       getWeixinUserInfo({
-        code: decodeURIComponent((new RegExp("[?|&]" + this.codename + "=" + "([^&;]+?)(&|#|;|$)").exec(location.href) || [, ""])[1].replace(/\+/g, "%20")) 
+        code: decodeURIComponent(
+          (new RegExp(
+            "[?|&]" + this.codename + "=" + "([^&;]+?)(&|#|;|$)"
+          ).exec(location.href) || [, ""])[1].replace(/\+/g, "%20")
+        )
       }).then(res => {
         if (!res.code) {
           this.datas = JSON.stringify(res);
@@ -131,27 +159,25 @@ export default {
       });
     },
     checkout(d) {
-       
       getMemberByOpenId(d).then(res => {
         if (!res.code) {
           this.oid = JSON.stringify(res);
           if (!res.data) {
-              //没有数据要全部确认信息提交
-              this.loginState=true
+            //没有数据要全部确认信息提交
+            this.loginState = true;
             //this.$router.push("/loginment?form=limit&state="+this.state);
           } else {
             if (res.data.state == 2) {
-                //已经登录  已经登录应该不会进入此页面
+              //已经登录  已经登录应该不会进入此页面
               if (this.state == 1) {
-                this.$router.push("/car?form=limit");
+                this.$router.push("/mycar?form=limit");
                 //window.location.href="/car?form=limit"
               } else if (this.state == 2) {
                 this.$router.push("/user?form=limit");
               }
-              
             } else {
-                //没有登录 请登录
-                this.loginState=false
+              //没有登录 请登录
+              this.loginState = false;
               //this.$router.push("/login?form=limit");
             }
           }
@@ -168,15 +194,18 @@ export default {
         code: this.sms,
         tag: "1"
       };
-
+      
       loginAndReg(d).then(res => {
         if (!res.code) {
-          localStorage.setItem("userinfo", JSON.stringify(res.data));
+          window.localStorage.setItem("userinfo", JSON.stringify(res.data));
           //this.mm=JSON.stringify(res.data)
-          if (this.$router.query.state == 1) {
-            this.$router.push("/car?form=limit");
-          } else {
-            this.$router.push("/user?form=limit");
+          //alert(window.location.search)
+          //this.phone = this.$route.query.state;
+          if (this.state == 1) {
+            this.$router.push("/mycar?form=limit");
+          } else if(this.state==2){
+            //ert(1);
+             this.$router.push("/user?form=limit");
           }
         } else {
           Toast(res.msg);

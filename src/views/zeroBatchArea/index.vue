@@ -11,22 +11,15 @@
         </van-nav-bar> -->
         <div class="userInfo">
                 <van-search placeholder="请输入搜索关键词" v-model="value" @input="onSearch" />
-                <!-- <van-search
-                v-model="value"
-                placeholder="请输入搜索关键词"
-                show-action
-                @search="onSearch"
-              >
-                <div slot="action" @click="onSearch">搜索</div>
-              </van-search> -->
+                
               <div class="infomation clearfix">
                 <img src="/static/images/qq.png" >
-                <p><label>ID：</label>50010036</p>
-                <p><label><van-icon name="shop" class="icon" />：</label>雨花碧水龙庭店</p>
-                <p class="t"><label><van-icon name="location" class="icon" />：</label>湖南省长沙芙蓉区王府井3楼府井3楼府井3楼</p>
+                <p><label>ID：</label>{{shopDes.distributorId}}</p>
+                <p><label><van-icon name="shop" class="icon" />：</label>{{shopDes.shopName}}</p>
+                <p class="t"><label><van-icon name="location" class="icon" />：</label>{{shopDes.provinceName+shopDes.cityName+shopDes.areaName+shopDes.address}}</p>
           
-                <span>购买指数<br><b>18588</b><br>
-                    粉丝数<br><b>588</b>
+                <span>购买指数<br><b>{{soldNum}}</b><br>
+                    粉丝数<br><b>{{fansNum}}</b>
                 </span>
                 
               </div>
@@ -42,7 +35,7 @@
                 <p class="goodsTitle"  @click="goDetail(item.productId)">{{item.title}}   <br><span class="guige">{{item.specification}}</span> </p>
                 <p class="redp"><template v-if="item.presellTime">预售时间：{{item.presellTime | formatDate}}</template><span>已售 <b>{{item.soldNumber}}</b> 份<template v-if="item.numberType==2">/ 限量{{item.number}}份</template></span></p>
                 <p class="redp"  v-if="item.pickupTime">提货时间：{{item.pickupTime | formatDate}}</p>
-                <p class="redp">￥<big>{{item.price}}</big> <del>￥{{item.originalPrice}}</del></p>
+                <p class="redp">￥<big>{{item.price*0.01}}</big> <del>￥{{item.originalPrice*0.01}}</del></p>
                 <b class="like"><van-icon name="like-o"  /> <i>关注</i></b> 
                 <a v-if="item.state==3" class="disable">加入购物车</a>
                 <a v-else @click="addToCar(item)">加入购物车</a>
@@ -63,17 +56,15 @@
 <script>
 
    
-    import { getSupplyList,getMemberByOpenId } from '@/iao/home/query'
+    import { getSupplyList,getMemberByOpenId,getShopDes } from '@/iao/home/query'
     import { Toast,List,NavBar,Cell,Search,Tabbar, TabbarItem,Icon  } from 'vant'
     import { dees } from '../../config'
 	export default {
 		name: 'ZeroBatchArea',
-        computed: {
-            
-            
-        },
+       
         data() {
 			return {
+                wxname:"wxname",
                 active: 0,
                 carNum:null,
 				mailSpecial: [],
@@ -84,6 +75,8 @@
                 loading: false,
                 finished: false,
                 value:'',
+                fansNum:null,
+                soldNum:null,
                 formLine:{
                     title:null,
                     "pager.pageNum":1,
@@ -93,13 +86,17 @@
                     
                 },
                 wxinfo:null,
+                shopDes:{}
             }
         },
         
         mounted() {
             //this.init()
-            document.title = '雨花碧水龙庭店'
-            //this.wxinfo=JSON.parse(window.localStorage.getItem("wxinfo"))
+           // window.localStorage.removeItem("wxinfo")
+            //window.localStorage.removeItem("userinfo")
+            //document.title = '雨花碧水龙庭店'
+            this.wxinfo=JSON.parse(window.localStorage.getItem("wxinfo"))
+            this.queryShopDes()
       
            
         },
@@ -152,52 +149,49 @@
             },
             goDetail(d){
                 this.$router.push('/detail?pid='+d);
-            },
+            }, 
             goPage(a){
-                //console.log(a)
-                let url="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx43fd4135600dcee3&redirect_uri="+dees.limitUrl+"&response_type=code&scope=snsapi_userinfo&state="+a+"#wechat_redirect"
+                if(!this.wxinfo){
+                    //alert(1)
+                    let url="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx43fd4135600dcee3&redirect_uri="+dees.limitUrl+"&response_type=code&scope=snsapi_userinfo&state="+a+"#wechat_redirect"
+                    window.location.href=url
+                }else{
+                    //alert(2)
+                    this.checkout(a)
+                }
                 
-                window.location.href=url
-               
-                // if(!this.wxinfo){
-                   
-                // }else{
-                //     this.checkout(a)
-                // }
-                
-                //this.$router.push('/detail');
+                //this.$router.push('/detail'); 
             },
-            goBack(){
-                this.$router.back(-1)
+            queryShopDes(){
+                getShopDes({
+                    py :this.$route.query.shopdescode
+                }).then(res=>{
+                    console.log(res)
+                    this.soldNum=res.data.soldNum
+                    this.fansNum=res.data.fansNum
+                    document.title=res.data.distributor.shopName
+                    this.shopDes=res.data.distributor
+                })
             },
             checkout(a) {
+                 //alert(this.wxinfo)
                 getMemberByOpenId({
                     openId: this.wxinfo.openid
                 }).then(res => {
-                    if (!res.code) {
-                   // this.oid = JSON.stringify(res);
-                    if (!res.data) {
-                        let url=dees.limitUrl
-                        //没有数据要全部确认信息提交
-                        window.location.href="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx43fd4135600dcee3&redirect_uri="+url+"&response_type=code&scope=snsapi_userinfo&state="+a+"1#wechat_redirect"
-                    } else {
-                        if (res.data.state == 2) {
-                            localStorage.setItem('userinfo', JSON.stringify(res.data));
-                            //已经登录  已经登录应该不会进入此页面
-                            if (a == 1) {
-                                this.$router.push("/car");
-                                //window.location.href="/car?form=limit"
-                            } else if (a == 2) {
-                                this.$router.push("/user");
-                            }
-                        
-                        } else {
-                            //没有登录 请登录
-                           //this.loginState=false
-                           this.$router.push("/loginment");
-                        //this.$router.push("/login?form=limit");
+                    if (res.code==0) {
+                        window.localStorage.setItem('userinfo', JSON.stringify(res.data));
+                        if (a == 1) {
+                            this.$router.push("/mycar"); 
+                            //window.location.href="/car?form=limit"
+                        } else if (a == 2) {
+                            this.$router.push("/user");
                         }
-                    }
+                   
+                    }else if(res.code==2){
+                        this.$router.push("/loginment?state="+a);
+                    }else if(res.code==3){
+                       let url="https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx43fd4135600dcee3&redirect_uri="+dees.limitUrl+"&response_type=code&scope=snsapi_userinfo&state="+a+"#wechat_redirect"
+                        window.location.href=url
                     }
                 });
             },
@@ -215,18 +209,7 @@
             [Icon.name]: Icon
         },
         filters: {
-            formatDate: function (value) {
-                if (!value) return ''
-                let date = new Date(value)
-                let year = date.getFullYear()
-                let month = date.getMonth() + 1
-                let day = date.getDate()
-                let h = date.getDate()
-                let m = date.getDate()
-                let s = date.getDate()
-                value = month + '月' + day +"日"+" "+h+":"+m
-                return value
-            },
+           
             Imgurl: function (value) {
                 if (!value) return ''
                
@@ -238,13 +221,13 @@
 </script>
 <style rel="stylesheet/scss" lang="scss" scoped>
 .guige{
-    color: #888;
+    color: #888;  
     font-size: 12px;
 }
 .pos{
     position: relative;
     .pos1{
-        position: absolute;
+        position: absolute; 
         bottom:0px;
         background-color: rgba(228,5,5,0.6);
         padding:2px 10px 0px 10px;

@@ -48,7 +48,7 @@ export default {
           this.headImg = res.data.headimgurl;
           this.openid = res.data.openid;
             let a= res.data
-            localStorage.setItem('wxinfo', JSON.stringify(a));
+            window.localStorage.setItem('wxinfo', JSON.stringify(a));
           this.checkout({
             openId: this.openid
           });
@@ -66,30 +66,41 @@ export default {
          alert(this.pagestate)
        // this.datas = JSON.stringify(res.data);
       alert(JSON.stringify(res))
-        if (!res.code) {
-           this.oid=JSON.stringify(res)
-          if (!res.data) {
-            alert(res.data)
-              this.$router.push("/loginment?form=limit&state="+this.state);
-          } else {
-         alert(res.data.state)
-            if (res.data.state == "2" || res.data.state==2) {
-              alert(this.pagestate)
-              if (this.pagestate == "1") {
-                alert("/car?form=limit")
-                this.$router.push("/mycar?form=limit");
-              } else if (this.pagestate == "2") {
-              alert("/user?form=limit")
-                this.$router.push("/user?form=limit");
-              }
-               // this.$router.push("/loginment?form=limit&state="+this.state);
-              //this.jumpUrl();
-            } else {
-             
-              this.$router.push("/login?form=limit");
-            }
-          }
+      if(!res.code){
+        if (this.pagestate == "1") {
+          this.$router.push("/mycar?form=limit");
+        } else if (this.pagestate == "2") {
+          this.$router.push("/user?form=limit");
         }
+      }else if(res.code==2){
+        this.$router.push("/login?form=limit");
+      }else if(res.code==3){
+        this.$router.push("/loginment?form=limit&state="+this.state);
+      }
+        // if (!res.code) {
+        //    this.oid=JSON.stringify(res)
+        //   if (!res.data) {
+        //     alert(res.data)
+        //       this.$router.push("/loginment?form=limit&state="+this.state);
+        //   } else{
+        //  alert(res.data.state)
+        //     if (res.data.state == "2" || res.data.state==2) {
+        //       alert(this.pagestate)
+        //       if (this.pagestate == "1") {
+        //         alert("/car?form=limit")
+        //         this.$router.push("/mycar?form=limit");
+        //       } else if (this.pagestate == "2") {
+        //       alert("/user?form=limit")
+        //         this.$router.push("/user?form=limit");
+        //       }
+        //        // this.$router.push("/loginment?form=limit&state="+this.state);
+        //       //this.jumpUrl();
+        //     } else {
+             
+        //       this.$router.push("/login?form=limit");
+        //     }
+        //   }
+        // }
       });
     }
   }

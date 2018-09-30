@@ -5,15 +5,23 @@
                 <van-icon name="home" slot="right" /> </van-nav-bar>
         <div class="content">
                 <div class="userInfo">
-                       
+                      
                       <div class="infomation clearfix">
-                        <img src="/static/images/qq.png" >
-                        <p class="bigp">zhangxueyou</p>
-                        <p>15578898765</p>
+                        <template v-if="userinfo">
+                            <img :src="userinfo.head" >
+                        <p class="bigp">{{userinfo.name}}</p>
+                        <p>{{userinfo.mobile}}</p>
+                        </template>
+                        <template v-else>
+                            <img  src="/static/images/qq.png" >
+                            <p class="bigp">zhangxueyou</p>
+                            <p>15578898765</p>
+                        </template>
                        
                         <span @click="show=true"><van-icon name="qr" /></span>
                       </div>
                 </div> 
+                {{wxinfo}}
                 {{userinfo}}
             <van-cell-group>
                     
@@ -25,14 +33,19 @@
             </van-cell-group>   
             <div class="bton">
                     <van-button size="large" type="danger" @click="onClickRight" plain class="mg">去购物</van-button>
-                    <van-button size="large" class="mg" plain >退出当前账号</van-button>
+                    <van-button size="large" class="mg" @click="onClickloginOut" plain >退出当前账号</van-button>
             </div>
             
         </div> 
 
 
-        <van-popup v-model="show">
-            <img src="/static/images/qq.png" alt="">
+        <van-popup v-model="show"> 
+         
+                <div id="qrcode">
+                    <qrcode-vue :value="value"></qrcode-vue>
+                </div>
+           
+            
         </van-popup>
     </Layout>
     
@@ -41,9 +54,9 @@
 <script>
 
    
-    import { querySmallBatch, getBehaviorCate, getBehaviorSupply } from '@/iao/home/query'
+    import { loginOut } from '@/iao/home/query'
     import { Toast,Icon,Cell ,NavBar,CellGroup ,Button,Popup   } from 'vant'
-    
+    import QrcodeVue from 'qrcode.vue'
 	export default {
 		name: 'ZeroBatchArea',
         computed: {
@@ -52,18 +65,25 @@
         },
         data() {
 			return {
+                value:"123465",
 				active: 0,
                 show:false,
                 result:["a"],
                 imageURL:"/static/images/qq.png",
-                wxinfo:window.localStorage.getItem("wxinfo"),
-                userinfo:window.localStorage.getItem("userinfo")
+                wxinfo:JSON.parse(window.localStorage.getItem("wxinfo")),
+                userinfo:JSON.parse(window.localStorage.getItem("userinfo"))
             }
         },
         mounted() {
-	        //this.init()
+            //this.init()
+           
+            this.value="https://www.hao123.com/"
+            if(!this.userinfo){
+               // this.$router.push('/loginment');
+            }
         },
         methods: {
+           
             onClickMiniBtn() {
                 
             },
@@ -71,29 +91,39 @@
 
             },
             goBack(){
-                this.$router.back(-1)
+                this.$router.push('/index');
             },
             onSubmit(){
                 this.$router.push('/submit');  
             },
             onClickRight(){
-                this.$router.push('/index');      
+               
+                this.$router.push('/index');
+            },
+            onClickloginOut(){
+                //alert(JSON.parse(window.localStorage.getItem("wxinfo")).openid) 
+               // return
+                loginOut({
+                   openId :this.wxinfo.openid
+                }).then(res=>{
+                    //alert(JSON.stringify(res))
+                    window.localStorage.removeItem('userinfo');
+                    this.$router.push('/loginment');
+                    //console.log(res)
+                })
             }
             
 	        
 
         },
         components: {
-	      
-            
-            
             [Icon.name]: Icon ,
             [NavBar.name]: NavBar ,
             [Button .name]: Button  ,
             [Popup  .name]: Popup   ,
-          
             [Cell .name]: Cell  ,
-            [CellGroup .name]: CellGroup  
+            [CellGroup .name]: CellGroup,
+            QrcodeVue 
         }
 	}
 </script>
