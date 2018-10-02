@@ -22,7 +22,7 @@ const router = new Router({
 		    name: 'ZeroBatchAreaList',
 		    meta: {
 		    	title: '商品详情',
-			    keepAlive: true,
+			    keepAlive: false,
 			    
 		    }
 	    },
@@ -122,6 +122,20 @@ const router = new Router({
 		    component: _import('zeroBatchArea/getInfo'),
 		    name: '获取微信信息',
 			meta: {title: '获取微信信息', keepAlive: false}  
+			
+		},
+		{
+		    path: '/adresslist',
+		    component: _import('zeroBatchArea/adresslist'),
+		    name: '地址列表',
+			meta: {title: '地址列表', keepAlive: false}  
+			
+		},
+		{
+		    path: '/adressedit',
+		    component: _import('zeroBatchArea/adressedit'),
+		    name: '地址编辑',
+			meta: {title: '地址编辑', keepAlive: false}  
 			
 	    },
 	    {

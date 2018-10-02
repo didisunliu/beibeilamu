@@ -18,35 +18,36 @@
                             <p>15578898765</p>
                         </template>
                        
-                        <span @click="show=true"><van-icon name="qr" /></span>
+                        <!-- <span @click="show=true"><van-icon name="qr" /></span> -->
                       </div>
                 </div> 
                 {{wxinfo}}
                 {{userinfo}}
             <van-cell-group>
                     
-                <van-cell title="全部订单" icon="pending-orders" is-link to="/orderlist" />
-                <van-cell title="未付款" icon="cash-back-record" class="iconred" is-link to="/orderlist" />
-                <van-cell title="待提货" icon="clock" class="iconyellow" is-link to="/orderlist" />
-                <van-cell title="已提货" icon="passed" class="icongreen" is-link to="/orderlist" />
+                <van-cell title="全部订单" icon="pending-orders" is-link to="/orderlist?type=0" />
+                <van-cell title="未付款" icon="cash-back-record" class="iconred" is-link to="/orderlist?type=1" />
+                <van-cell title="待提货" icon="clock" class="iconyellow" is-link to="/orderlist?type=2" />
+                <van-cell title="已提货" icon="passed" class="icongreen" is-link to="/orderlist?type=3" />
+                <van-cell title="地址管理" icon="location" class="icongreen" is-link to="/adresslist" />
                     
             </van-cell-group>   
             <div class="bton">
-                    <van-button size="large" type="danger" @click="onClickRight" plain class="mg">去购物</van-button>
+                    <van-button size="large" type="danger" @click="onGotocar" plain class="mg">去购物</van-button>
                     <van-button size="large" class="mg" @click="onClickloginOut" plain >退出当前账号</van-button>
             </div>
             
         </div> 
 
 
-        <van-popup v-model="show"> 
+        <!-- <van-popup v-model="show"> 
          
                 <div id="qrcode">
-                    <qrcode-vue :value="value"></qrcode-vue>
+                    <qrcode-vue :value="value" size="200"></qrcode-vue>
                 </div>
            
             
-        </van-popup>
+        </van-popup> -->
     </Layout>
     
     
@@ -76,7 +77,7 @@
         },
         mounted() {
             //this.init()
-           
+           //二维码值
             this.value="https://www.hao123.com/"
             if(!this.userinfo){
                // this.$router.push('/loginment');
@@ -91,14 +92,24 @@
 
             },
             goBack(){
-                this.$router.push('/index');
+                this.$router.push(
+        "/index?shopdescode=" + window.localStorage.getItem("shopcode")
+      );
             },
             onSubmit(){
                 this.$router.push('/submit');  
             },
             onClickRight(){
                
-                this.$router.push('/index');
+                this.$router.push(
+        "/index?shopdescode=" + window.localStorage.getItem("shopcode")
+      );
+            },
+            onGotocar(){
+                //this.$router.push('/index');
+                this.$router.push(
+        "/mycar?shopdescode=" + window.localStorage.getItem("shopcode")
+      );
             },
             onClickloginOut(){
                 //alert(JSON.parse(window.localStorage.getItem("wxinfo")).openid) 

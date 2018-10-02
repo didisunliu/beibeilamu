@@ -7,7 +7,9 @@
             <div class="wrigteBg">
                 <span>
                     <img :src="headImg" alt="" class="headImg">
-                    点击修改
+                    点击修改 
+                    <input class="file" name="file" type="file" accept="image/png,image/gif,image/jpeg" @change="update" />
+
                 </span>
             
             </div>
@@ -15,22 +17,30 @@
                 <van-field v-model="name" label="姓名" />
                 <van-field v-model="phone" label="手机号" placeholder="请输入手机号" :error-message="error" />
                 <van-field v-model="sms" center clearable label="短信验证码" placeholder="请输入短信验证码">
-                    <van-button slot="button" size="small" @click="sendCode" type="primary" :disabled="dis">发送验证码</van-button>
+                    <van-button slot="button" size="small" @click="sendCode" type="primary" :disabled="dis">{{sendtext}}</van-button>
                 </van-field>
 
             </van-cell-group>
-            <div class="sub"><van-button size="large" type="primary" @click="onSubmit" >确 定</van-button></div>
+            <div class="sub"><van-button size="large" type="primary" @click="onSubmit" :disabled="pass" >确 定</van-button></div>
 
         </div>
         <div v-else class="content">
-           
+           <!-- <div class="wrigteBg">
+                <span>
+                    <img :src="headImg" alt="" class="headImg">
+                    点击修改 
+                    <input class="file" name="file" type="file" accept="image/png,image/gif,image/jpeg" @change="upImage"/>
+
+                </span>
+            
+            </div> -->
              <van-cell-group>
                 <van-field v-model="phone" label="手机号" placeholder="请输入手机号" :error-message="error" />
                 <van-field v-model="sms" center clearable label="短信验证码" placeholder="请输入短信验证码">
                     <van-button slot="button" size="small" @click="sendCode" type="primary" :disabled="dis">{{sendtext}}</van-button>
                 </van-field>
             </van-cell-group>
-            <div class="sub"><van-button size="large" type="primary" @click="onSubmit" >登 录</van-button></div>
+            <div class="sub"><van-button size="large" type="primary" @click="onSubmit" :disabled="pass" >登 录</van-button></div>
           
 
         </div>
@@ -44,13 +54,13 @@
 </template>
 <script>
 import {
-  sendCode,
+  sendCodes,
   loginAndReg,
   getWeixinUserInfo,
   getMemberByOpenId
 } from "@/iao/home/query";
 import { Toast, Field, NavBar, Cell, CellGroup, Button } from "vant";
-
+import request from '@/utils/request'
 export default {
   name: "ZeroBatchArea",
   computed: {},
@@ -61,6 +71,7 @@ export default {
       phone: "",
       loginState: false,
       dis: false,
+      pass: true,
       error: null,
       name: "",
       openid: "",
@@ -71,7 +82,7 @@ export default {
       state: "",
       datas: "",
       oid: "",
-      count: '',
+      count: "",
       timer: null,
       wxinfo: null,
       userinfo: null
@@ -83,57 +94,69 @@ export default {
         location.href
       ) || [, ""])[1].replace(/\+/g, "%20")
     );
-//window.localStorage.removeItem("wxinfo")
+    //window.localStorage.removeItem("wxinfo")
     this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
     //alert(window.localStorage.getItem("wxinfo"))
     //this.queryWeixinUserInfo();
     //return
-    if(!this.wxinfo){
+    if (!this.wxinfo) {
       this.queryWeixinUserInfo();
-        
-    }else{
-        this.headImg = this.wxinfo.headimgurl;
-        this.name = this.wxinfo.nickname;
-        this.openid = this.wxinfo.openid;
+    } else {
+      this.headImg = this.wxinfo.headimgurl;
+      this.name = this.wxinfo.nickname;
+      this.openid = this.wxinfo.openid;
     }
   },
   methods: {
-    
     sendCode() {
-      
-      sendCode({
+      if (!/^1[34578]\d{9}$/.test(this.phone)) {
+        Toast("手机号码有误，请重填");
+        return false;
+      }
+      sendCodes({
         mobile: this.phone,
         tag: "1"
       }).then(res => {
         if (!res.code) {
-          this.dis = true; 
+          this.dis = true;
+          this.pass = false;
           Toast("短信已经发出！");
           const TIME_COUNT = 60;
-        if (!this.timer) {
-          this.count = TIME_COUNT;
-         
-          this.timer = setInterval(() => {
-           
-          if (this.count > 0 && this.count <= TIME_COUNT) {
-          
-            this.sendtext = "重新发送(" + this.count + ")";
-            this.count--;
-          } else {
-             
-            this.dis = false;
-             this.sendtext = "发送验证码";
-            clearInterval(this.timer);
-            this.timer = null;
+          if (!this.timer) {
+            this.count = TIME_COUNT;
+
+            this.timer = setInterval(() => {
+              if (this.count > 0 && this.count <= TIME_COUNT) {
+                this.sendtext = "重新发送(" + this.count + ")";
+                this.count--;
+              } else {
+                this.dis = false;
+                this.sendtext = "发送验证码";
+                clearInterval(this.timer);
+                this.timer = null;
+              }
+            }, 1000);
           }
-          }, 1000)
-        }
-         
-        }else{
-          Toast(res.msg)
+        } else {
+          Toast(res.msg);
         }
       });
     },
 
+    upImage(e) {
+     
+      let file = e.target.files[0];
+      let param = new FormData(); //创建form对象
+      param.append("file", file, file.name); //通过append向form对象添加数据
+     //添加form表单中其他数据
+      let config = { headers: { "Content-Type": "multipart/form-data" } }; //添加请求头
+      request.post("http://47.105.38.227:8082/upload/images", param, config)
+        .then(response => {
+          //alert(response.data[0].original)
+          this.headImg=response.data[0].original
+          console.log(response.data);
+        });
+    },
     // goBack() {
     //   this.$router.back(-1);
     // },
@@ -160,32 +183,29 @@ export default {
     },
     checkout(d) {
       getMemberByOpenId(d).then(res => {
+        this.oid = JSON.stringify(res);
         if (!res.code) {
-          this.oid = JSON.stringify(res);
-          if (!res.data) {
-            //没有数据要全部确认信息提交
-            this.loginState = true;
-            //this.$router.push("/loginment?form=limit&state="+this.state);
-          } else {
-            if (res.data.state == 2) {
-              //已经登录  已经登录应该不会进入此页面
-              if (this.state == 1) {
-                this.$router.push("/mycar?form=limit");
-                //window.location.href="/car?form=limit"
-              } else if (this.state == 2) {
-                this.$router.push("/user?form=limit");
-              }
-            } else {
-              //没有登录 请登录
-              this.loginState = false;
-              //this.$router.push("/login?form=limit");
-            }
+          if (this.state == "1") {
+            this.$router.push("/mycar?form=limit&state=" + this.state);
+          } else if (this.state == "2") {
+            this.$router.push("/user?form=limit&state=" + this.state);
           }
+        } else if (res.code == 2) {
+          //没有登录 请登录
+          this.$router.push("/loginment?form=limit&state=" + this.state);
+        } else if (res.code == 3) {
+          //没有数据要全部确认信息提交
+          this.loginment = true;
+          this.$router.push("/loginment?form=limit&state=" + this.state);
         }
       });
     },
 
     onSubmit() {
+      if (!this.sms) {
+        Toast("请填写验证码");
+        return false;
+      }
       let d = {
         head: this.headImg,
         name: this.name,
@@ -194,7 +214,7 @@ export default {
         code: this.sms,
         tag: "1"
       };
-      
+
       loginAndReg(d).then(res => {
         if (!res.code) {
           window.localStorage.setItem("userinfo", JSON.stringify(res.data));
@@ -203,9 +223,13 @@ export default {
           //this.phone = this.$route.query.state;
           if (this.state == 1) {
             this.$router.push("/mycar?form=limit");
-          } else if(this.state==2){
+          } else if (this.state == 2) {
             //ert(1);
-             this.$router.push("/user?form=limit");
+            this.$router.push("/user?form=limit");
+          } else {
+            this.$router.push(
+              "/index?shopdescode=" + window.localStorage.getItem("shopcode")
+            );
           }
         } else {
           Toast(res.msg);
@@ -243,6 +267,21 @@ export default {
   text-align: center;
   color: #999;
   line-height: 25px;
+  position: relative;
+  span{
+    
+  }
+}
+.file{
+  display: block;
+  width: 100px;
+  height: 100px;
+  background: #eee;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  margin-left: -50px;
+  opacity: 0;
 }
 .headImg {
   width: 60px;

@@ -3,15 +3,18 @@
             
             <van-nav-bar title="我的订单"  left-text="返回" @click-left="goBack"    left-arrow fixed> </van-nav-bar>
             <div class="content">       
-                <van-tabs type="line" class="tabbox"  @change="changeTab">
+                <van-tabs type="line" class="tabbox" v-model="active"  @change="changeTab">
                     <van-tab title="全部"> </van-tab>
                     <van-tab title="未付款"> </van-tab>
                     <van-tab title="待提货"> </van-tab>
                     <van-tab title="已提货"> </van-tab>
                 </van-tabs>
                 <div class="olist" v-if="active==0">
-                    <div class="oitem">
-                        <p class="pbox">订单编号：12345678900987654321 <span class="red">未付款</span></p>
+                    <van-list v-model="loading" :finished="finished" @load="onLoad" :offset="10"  class="boxlist">
+            
+                     <van-cell v-for="item in allList" class="boxlist"  >     
+                    <div class="oitem"  >
+                        <p class="pbox">订单编号：{{item.orderCode}} <span class="red">{{orderstate[item.state]}}</span></p>
                         <van-cell  is-link >
                             <div Slot="title">
                                 <img :src="imageURL" alt="" class="goodsicon">
@@ -19,25 +22,23 @@
                                 <img :src="imageURL" alt="" class="goodsicon">
                             </div>
                         </van-cell>
-                        <p class="price">2018-09-05 19:45:08 <span>共1件商品 <b>￥5.9</b></span></p>
-                        <p class="pbox">提货单号：12345678900987654321 <van-button class="fl" size="small"  type="danger" plain>去付款</van-button></p>
+                        <p class="price">{{item.createTime}} <span>共1件商品 <b>￥5.9</b></span></p>
+                        <p class="pbox clearfix">
+                          <em  v-if="item.state!=1">提货单号：12345678900987654321</em>
+                           <van-button v-if="item.state==1" @click="goToPay(item)" class="fl" size="small"  type="danger" plain>去付款</van-button>
+                        <van-button v-if="item.state==2" class="fl" size="small"  type="danger" plain>确认提货</van-button>
+                        <van-button v-if="item.state==3" class="fl" size="small"  type="default" plain>删除</van-button>
+                        </p>
                         
                     </div>
-                    <div class="oitem">
-                            <p class="pbox">订单编号：12345678900987654321 <span class="blank">交易关闭</span></p>
-                            <van-cell  is-link >
-                                <div Slot="title">
-                                    <img :src="imageURL" alt="" class="goodsicon">
-                                </div>
-                            </van-cell>
-                            <p class="price">2018-09-05 19:45:08 <span>共1件商品 <b>￥5.9</b></span></p>
-                            <p class="pbox">提货单号：12345678900987654321 <van-button class="fl" size="small"  type="default" plain>删除</van-button></p>
-                            
-                        </div>
+                     </van-cell>
+            
+                     </van-list>
+                   
                 </div>
                 <div class="olist" v-if="active==1">
-                    <div class="oitem">
-                        <p class="pbox">订单编号：12345678900987654321 <span class="red">未付款</span></p>
+                     <div class="oitem" v-for="item in allList" v-if="item.state==1">
+                        <p class="pbox">订单编号：{{item.orderCode}} <span class="red">{{orderstate[item.state]}}</span></p>
                         <van-cell  is-link >
                             <div Slot="title">
                                 <img :src="imageURL" alt="" class="goodsicon">
@@ -45,15 +46,18 @@
                                 <img :src="imageURL" alt="" class="goodsicon">
                             </div>
                         </van-cell>
-                        <p class="price">2018-09-05 19:45:08 <span>共1件商品 <b>￥5.9</b></span></p>
-                        <p class="pbox">提货单号：12345678900987654321 <van-button class="fl" size="small"  type="danger" plain>去付款</van-button></p>
+                        <p class="price">{{item.createTime}} <span>共1件商品 <b>￥5.9</b></span></p>
+                        <p class="pbox clearfix "><i  v-if="item.state!=1">提货单号：12345678900987654321</i><van-button v-if="item.state==1" class="fl" size="small"  type="danger"  @click="goToPay(item)" plain>去付款</van-button>
+                        <van-button v-if="item.state==2" class="fl" size="small"  type="danger" plain>确认提货</van-button>
+                        <van-button v-if="item.state==3" class="fl" size="small"  type="default" plain>删除</van-button>
+                        </p>
                         
                     </div>
                     
                 </div>
                 <div class="olist" v-if="active==2">
-                    <div class="oitem">
-                        <p class="pbox">订单编号：12345678900987654321 <span class="red">待提货</span></p>
+                     <div class="oitem" v-for="item in allList" v-if="item.state==2">
+                        <p class="pbox">订单编号：{{item.orderCode}} <span class="red">{{orderstate[item.state]}}</span></p>
                         <van-cell  is-link >
                             <div Slot="title">
                                 <img :src="imageURL" alt="" class="goodsicon">
@@ -61,28 +65,36 @@
                                 <img :src="imageURL" alt="" class="goodsicon">
                             </div>
                         </van-cell>
-                        <p class="price">2018-09-05 19:45:08 <span>共1件商品 <b>￥5.9</b></span></p>
-                        <p class="pbox">提货单号：12345678900987654321 <van-button class="fl" size="small"  type="danger" plain>确认提货</van-button></p>
+                        <p class="price">{{item.createTime}} <span>共1件商品 <b>￥5.9</b></span></p>
+                        <p class="pbox">提货单号：12345678900987654321 <van-button v-if="item.state==1" class="fl" size="small"  type="danger" plain>去付款</van-button>
+                        <van-button v-if="item.state==2" class="fl" size="small"  type="danger" plain>确认提货</van-button>
+                        <van-button v-if="item.state==3" class="fl" size="small"  type="default" plain>删除</van-button>
+                        </p>
                         
                     </div>
                    
                 </div>
                 <div class="olist" v-if="active==3">
                     
-                    <div class="oitem">
-                            <p class="pbox">订单编号：12345678900987654321 <span class="blank">交易完成</span></p>
-                            <van-cell  is-link >
-                                <div Slot="title">
-                                    <img :src="imageURL" alt="" class="goodsicon">
-                                </div>
-                            </van-cell>
-                            <p class="price">2018-09-05 19:45:08 <span>共1件商品 <b>￥5.9</b></span></p>
-                            <p class="pbox">提货单号：12345678900987654321 <van-button class="fl" size="small"  type="default" plain>删除</van-button></p>
-                            
-                        </div>
+                     <div class="oitem" v-for="item in allList" v-if="item.state==3">
+                        <p class="pbox">订单编号：{{item.orderCode}} <span class="red">{{orderstate[item.state]}}</span></p>
+                        <van-cell  is-link >
+                            <div Slot="title">
+                                <img :src="imageURL" alt="" class="goodsicon">
+                                <img :src="imageURL" alt="" class="goodsicon">
+                                <img :src="imageURL" alt="" class="goodsicon">
+                            </div>
+                        </van-cell>
+                        <p class="price">{{item.createTime}} <span>共1件商品 <b>￥5.9</b></span></p>
+                        <p class="pbox">提货单号：12345678900987654321 <van-button v-if="item.state==1" class="fl" size="small"  type="danger" plain>去付款</van-button>
+                        <van-button v-if="item.state==2" class="fl" size="small"  type="danger" plain>确认提货</van-button>
+                        <van-button v-if="item.state==3" class="fl" size="small"  type="default" plain>删除</van-button>
+                        </p>
+                        
+                    </div>
                 </div>
                 
-                <p class="nomore">没有更多订单了~~~</p>
+                <!-- <p class="nomore">没有更多订单了~~~</p> -->
             </div> 
             
     
@@ -93,136 +105,179 @@
         
     </template>
     <script>
-    
-       
-        import { querySmallBatch, getBehaviorCate, getBehaviorSupply } from '@/iao/home/query'
-        import { Toast,NavBar,Icon,Tab, Tabs,Button,Panel,Cell  } from 'vant'
-        
-        export default {
-            name: 'ZeroBatchArea',
-            computed: {
-                
-                
-            },
-            data() {
-                return {
-                    active: 0,
-                    checked:false,
-                    result:["a"],
-                    imageURL:"/static/images/qq.png"
-                }
-            },
-            mounted() {
-                //this.init()
-            },
-            methods: {
-                onClickMiniBtn() {
-                    
-                },
-                onClickBigBtn(){
-    
-                },
-                goBack(){
-                    this.$router.back(-1)
-                },
-                onSubmit(){
-                    this.$router.push('/submit');  
-                },
-                changeTab(e){
-                  
-                    this.active=e
-                }
-                
-                
-    
-            },
-            components: {
-                [Tab.name]: Tab,
-                [Cell.name]: Cell,
-                [Tabs .name]: Tabs ,
-                [NavBar.name]: NavBar,
-                [Icon.name]: Icon ,
-                [Button.name]: Button ,
-                [Panel.name]: Panel  ,
-              
-            }
-        }
-    </script>
-    <style rel="stylesheet/scss" lang="scss" scoped>
-        .clearfix:after{content:".";display:block;height:0;clear:both;visibility:hidden}
-        .fl{
-            float: right;
-            margin-top: -7px;
-        }
-        .main {
-            background-color: #f1f1f1;
-            
-        }
-        .content{
-            margin: 45px 0px 0 0; 
-        }
-        
-        .tabbox{
-            
-            border-top: 1px solid #dddddd;
-            border-bottom: 1px solid #dddddd;
-            
-        }
-        .nomore{
-            background-color: #fff;
-            text-align: center;
-            font-size: 12px;
-            padding: 10px 0; 
-            margin: 10px 0;
-            border-top: 1px solid #dddddd;
-            border-bottom: 1px solid #dddddd;
-        }
-        .goodsicon{
-            width: 40px;
-            height: 40px;
-             
-        }
-        .pbox{
-            padding: 12px  16px;
-            border-top: 1px solid #dddddd;
-            border-bottom: 1px solid #dddddd;
-            background: #ffffff;
-            font-size: 12px;
-            span{
-                font-size: 14px;
-                float: right;
-            }
-            .red{
-                color: red;
-            }
-            .blank{
-                color: #333;
-            }
-        }
-        .price{
-            padding: 12px 16px;
-            border-top: 1px solid #dddddd;
+import { queryOrder } from "@/iao/home/query";
+import {
+  Toast,
+  NavBar,
+  Icon,
+  Tab,
+  Tabs,
+  Button,
+  Panel,
+  Cell,
+  List
+} from "vant";
+
+export default {
+  name: "ZeroBatchArea",
+  computed: {},
+  data() {
+    return {
+      active: this.$route.query.type || 0,
+      checked: false,
+      allList: [],
+      orderstate: ["", "待付款", "待提货", "交易完成"],
+      imageURL: "/static/images/qq.png",
+      loading: false,
+      finished: false,
+      form: {
+        type: 1,
+        memberId:null,
+        state: null,
+        "page.pageNum": 1,
+        "page.pageSize": 10
+      },
+
+      wxinfo: null,
+      userinfo: null
+    };
+  },
+  mounted() {
+    //this.init()
+    this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
+    this.userinfo = JSON.parse(window.localStorage.getItem("userinfo"));
+    // this.getOrder(this.form);
+  },
+  methods: {
+    onLoad() {
+      this.form.memberId=this.userinfo.memberId
+      this.getOrder(this.form);
+    },
+    onClickMiniBtn() {},
+    onClickBigBtn() {},
+    goBack() {
+      this.$router.back(-1);
+    },
+    onSubmit() {
+      this.$router.push("/submit");
+    },
+    changeTab(e) {
+      this.active = e;
+    },
+    goToPay(e){
+      this.$router.push("/online?orderid="+e.orderId)
+    },
+    getOrder(d) {
+      queryOrder(d).then(res => {
+        if (!res.code) {
+          if (res.data.length == 0) {
+            this.finished = true;
+          } else {
            
-            background: #ffffff;
-            font-size: 12px;
-            span{
-                font-size: 12px;
-                font-weight:bold;
-                float: right;
+            this.form["pager.pageNum"] = this.form["pager.pageNum"] + 1;
+            //  console.log(this.formLine["pager.pageNum"])
+            if (res.data.length < 10) {
+              this.finished = true;
             }
-            b{
-                color: red;
-                font-size: 14px;
-            }
-             
+            this.loading = false;
+          }
+          this.allList = res.data;
+        } else {
+          this.finished = true;
         }
-        .oitem{
-            margin-top: 10px;
-        }
-    
-    </style>
-    <style  rel="stylesheet/scss" lang="scss" >
-    .oitem .van-cell__right-icon{
-        line-height: 3 !important;
+      });
     }
-    </style>
+  },
+  components: {
+    [Tab.name]: Tab,
+    [Cell.name]: Cell,
+    [Tabs.name]: Tabs,
+    [NavBar.name]: NavBar,
+    [Icon.name]: Icon,
+    [Button.name]: Button,
+    [Panel.name]: Panel,
+    [List.name]: List
+  }
+};
+</script>
+    <style rel="stylesheet/scss" lang="scss" scoped>
+.clearfix:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+.boxlist {
+  padding: 0px;
+}
+.fl {
+  float: right;
+  margin-top: -7px;
+}
+.main {
+  background-color: #f1f1f1;
+}
+.content {
+  margin: 45px 0px 0 0;
+}
+
+.tabbox {
+  border-top: 1px solid #dddddd;
+  border-bottom: 1px solid #dddddd;
+}
+.nomore {
+  background-color: #fff;
+  text-align: center;
+  font-size: 12px;
+  padding: 10px 0;
+  margin: 10px 0;
+  border-top: 1px solid #dddddd;
+  border-bottom: 1px solid #dddddd;
+}
+.goodsicon {
+  width: 40px;
+  height: 40px;
+}
+.pbox {
+  padding: 12px 16px;
+  border-top: 1px solid #dddddd;
+  border-bottom: 1px solid #dddddd;
+  background: #ffffff;
+  font-size: 12px;
+  span {
+    font-size: 14px;
+    float: right;
+  }
+  .red {
+    color: red;
+  }
+  .blank {
+    color: #333;
+  }
+}
+.price {
+  padding: 12px 16px;
+  border-top: 1px solid #dddddd;
+
+  background: #ffffff;
+  font-size: 12px;
+  span {
+    font-size: 12px;
+    font-weight: bold;
+    float: right;
+  }
+  b {
+    color: red;
+    font-size: 14px;
+  }
+}
+.oitem {
+  margin-top: 10px;
+}
+</style>
+    <style  rel="stylesheet/scss" lang="scss" >
+.oitem .van-cell__right-icon {
+  line-height: 3 !important;
+}
+</style>
