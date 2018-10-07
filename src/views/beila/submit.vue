@@ -110,7 +110,7 @@ import {
 } from "vant";
 
 export default {
-  name: "ZeroBatchArea",
+  name: "beila",
   computed: {},
   data() {
     return {
@@ -144,7 +144,7 @@ export default {
  this.username = this.userinfo.name;
     this.usertel = this.userinfo.mobile;
     }
-    this.active=this.$route.query.active
+    this.active=this.$route.query.active==1?this.$route.query.active:0
     this.radio=this.$route.query.active==1?2:1
     this.queryShopDes();
     if(this.$route.query.from=="mast"){
@@ -158,7 +158,7 @@ export default {
   methods: {
     queryShopDes() {
       getShopDes({
-        py: this.$route.query.shopdescode || window.localStorage.getItem("shopcode")
+        py: this.$route.query.py || window.localStorage.getItem("shopcode")
       }).then(res => {
         //  console.log(res)
         this.shopinfo = res.data;
@@ -166,7 +166,7 @@ export default {
       });
     },
     chooseAddress(){
-      this.$router.push("/adresslist?from=submit&shopdescode="+window.localStorage.getItem("shopcode")+"&pid="+this.$route.query.pid+"&count="+this.$route.query.count)
+      this.$router.push("/adresslist?from=submit&py="+window.localStorage.getItem("shopcode")+"&pid="+this.$route.query.pid+"&count="+this.$route.query.count)
     },
     goToBuy(){
       
@@ -231,7 +231,7 @@ export default {
       this.$router.back(-1);
     },
     goOnline() {
-      //this.$router.push("/online?shopdescode="+this.$route.query.shopdescode)
+      //this.$router.push("/online?py="+this.$route.query.py)
     //return
       let d={
           memberId :this.userinfo.memberId,
@@ -248,7 +248,7 @@ export default {
          
           if(!res.code){
            // alert(JSON.stringify(res))
-              this.$router.push("/online?shopdescode="+window.localStorage.getItem("shopcode")+"&orderid="+res.data)
+              this.$router.push("/online?py="+window.localStorage.getItem("shopcode")+"&orderid="+res.data)
           }
       });
     },

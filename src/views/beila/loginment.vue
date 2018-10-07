@@ -62,7 +62,7 @@ import {
 import { Toast, Field, NavBar, Cell, CellGroup, Button } from "vant";
 import request from '@/utils/request'
 export default {
-  name: "ZeroBatchArea",
+  name: "beila",
   computed: {},
   data() {
     return {
@@ -228,7 +228,7 @@ export default {
             this.$router.push("/user?form=limit");
           } else {
             this.$router.push(
-              "/index?shopdescode=" + window.localStorage.getItem("shopcode")
+              "/index?py=" + window.localStorage.getItem("shopcode")
             );
           }
         } else {

@@ -36,7 +36,7 @@ import { sendCode, shoploginAndReg ,getShopByOpenId,getWeixinUserInfo} from "@/i
 import { Toast, Field, NavBar, Cell, CellGroup, Button } from "vant";
 
 export default {
-  name: "ZeroBatchArea",
+  name: "beila",
   computed: {},
   data() {
     return {

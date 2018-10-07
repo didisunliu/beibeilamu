@@ -26,7 +26,7 @@
     import { Toast,Icon,Cell ,NavBar,CellGroup ,Button,Popup ,AddressList,AddressEdit    } from 'vant'
     import QrcodeVue from 'qrcode.vue'
 	export default {
-		name: 'ZeroBatchArea',
+		name: 'beila',
         computed: {
             
             
@@ -58,17 +58,17 @@
              onAdd() {
       //Toast('新增地址');
       //this.show=true
-      this.$router.push("/adressedit?shopdescode="+window.localStorage.getItem("shopcode"))
+      this.$router.push("/adressedit?py="+window.localStorage.getItem("shopcode"))
     },
 
     onEdit(item, index) {
         console.log(item)
-         this.$router.push("/adressedit?id="+item.id+"&shopdescode="+window.localStorage.getItem("shopcode"))
+         this.$router.push("/adressedit?id="+item.id+"&py="+window.localStorage.getItem("shopcode"))
       //Toast('编辑地址:' + index);
     },
     getAddress(){
         queryAddress({
-            memberId:this.userinfo.memberId
+            memberId:this.userinfo?this.userinfo.memberId : ''
         }).then(res=>{
             if(res.code==0){
                 res.data.forEach(element => {
@@ -87,19 +87,19 @@
         //console.log(e)
         setDefAddress({
             id:e.id,
-            memberId :this.userinfo.memberId
+            memberId :this.userinfo?this.userinfo.memberId : ''
         }).then(res=>{
             if(res.code==0){
                 //Toast("已经设置为默认地址")
                 if(this.$route.query.from=="submit"){
-                    //let url="/submit?active=1&shopdescode="+window.localStorage.getItem("shopcode")+"&pid="+this.$route.query.pid+"&count="+this.$route.query.count
+                    //let url="/submit?active=1&py="+window.localStorage.getItem("shopcode")+"&pid="+this.$route.query.pid+"&count="+this.$route.query.count
                        this.$router.push({path:'/submit',query:{
                            active:1,
-                           shopdescode:window.localStorage.getItem("shopcode"),
+                           py:window.localStorage.getItem("shopcode"),
                            pid:this.$route.query.pid,
                            count:this.$route.query.count
                        }})
-                    //this.$router.push("/submit?active=1&shopdescode="+window.localStorage.getItem("shopcode")+"&pid="+this.$route.query.pid+"&count="+this.$route.query.count)
+                    //this.$router.push("/submit?active=1&py="+window.localStorage.getItem("shopcode")+"&pid="+this.$route.query.pid+"&count="+this.$route.query.count)
                 }
             }
         })

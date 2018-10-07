@@ -4,7 +4,8 @@
         <van-nav-bar title="购物车"  left-text="返回" :right-text="opertor" @click-left="goBack"  @click-right="Goeditor"    left-arrow fixed> </van-nav-bar>
       
         <div class="content"> 
-                <van-swipe-cell :right-width="65" v-for="item in cars" >
+          <template v-if="cars.length>0">
+                <van-swipe-cell :right-width="0" v-for="item in cars" >
                     <van-cell-group>
                         <van-cell >
                         <div class="goods" v-if="item.state!='6' && item.state!='5'">
@@ -30,6 +31,16 @@
                     </van-cell-group>
                     <!-- <span slot="right" class="del">删除</span> -->
                 </van-swipe-cell>
+                </template>
+                <template v-else-if="isnull">
+                  <div class="carnull">
+                    <span> <van-icon name="cart" /></span>
+                     <p>还没有添加商品</p>
+                     <van-button plain type="danger" class="bbox" @click="goIndex">去购物</van-button>
+                  </div>
+                  
+                </template>
+
            
         </div> 
 
@@ -76,11 +87,12 @@ import {
   CheckboxGroup,
   SwipeCell,
   Stepper,
-  Card
+  Card,
+  Button
 } from "vant";
 
 export default {
-  name: "ZeroBatchArea",
+  name: "beila",
   computed: {},
   data() {
     return {
@@ -96,7 +108,8 @@ export default {
       cars: [],
       editorCars: [],
       opertor: "编辑",
-      allstate: null
+      allstate: null,
+      isnull:false
     };
   },
   mounted() {
@@ -107,13 +120,15 @@ export default {
     this.getMycar();
   },
   methods: {
-    onClickMiniBtn() {},
-    onClickBigBtn() {},
+ 
+    goIndex() { 
+      this.$router.push("/index?py="+window.localStorage.getItem("shopcode"));
+    },
     goBack() {
       this.$router.back(-1);
     },
     onSubmit() {
-      this.$router.push("/submit?shopdescode="+window.localStorage.getItem("shopcode"));
+      this.$router.push("/submit?py="+window.localStorage.getItem("shopcode"));
     },
     onDel() {},
     editorcheckboxClick(e) {
@@ -137,8 +152,11 @@ export default {
         memberId:this.userinfo.memberId
       }).then(res => {
         this.cars = res.data;
-
+     // console.log(this.cars.length) 
         let first = null;
+        if(this.cars.length==0){
+          this.isnull=true
+        }
 
         this.cars.forEach((el, index) => {
           if(el.state==3  || el.state==4 || el.state==5 || el.state==6){
@@ -265,7 +283,9 @@ export default {
             //this.CalcTotel();
             // Toast(res.msg)
             if(!res.code){
+                 this.checked=false
                 this.getMycar()
+                
             }else{
                 Toast(res.msg)
             }
@@ -282,6 +302,7 @@ export default {
     [SwipeCell.name]: SwipeCell,
     [Cell.name]: Cell,
     [CellGroup.name]: CellGroup,
+    [Button.name]: Button,
     [Checkbox.name]: Checkbox
   }
 };
@@ -300,6 +321,34 @@ export default {
 }
 .content {
   margin: 45px 0px;
+}
+.carnull{
+  padding: 30px 15px;
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  height: 100%;
+  background-color: #fff;
+      padding-top: 30%;
+  span{
+    display: block;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    margin: auto;
+    line-height: 140px;
+    font-size: 56px;
+    color: #ddd;
+    
+  }
+  p{
+    line-height: 30px ;
+  }
+}
+.bbox{
+  height: 37px;
+  line-height: 35px;
 }
 .pdleft {
   padding-left: 1rem;

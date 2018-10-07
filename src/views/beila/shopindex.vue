@@ -92,7 +92,7 @@
         import { Toast,NavBar,Icon,Button,Circle,Row, Col   } from 'vant'
         
         export default {
-            name: 'ZeroBatchArea',
+            name: 'beila',
             computed: {
                 
                 

@@ -43,10 +43,10 @@
             </van-cell>
             
         </van-list>
-        <van-tabbar v-model="active" fixed @change="goPage">
-            <van-tabbar-item icon="shop">店铺</van-tabbar-item>
-            <van-tabbar-item icon="shopping-cart" :info="carNum">购物车</van-tabbar-item>
-            <van-tabbar-item icon="contact" >我的</van-tabbar-item>
+        <van-tabbar v-model="active" fixed>
+            <van-tabbar-item icon="shop" @click="goPage(0)">店铺</van-tabbar-item>
+            <van-tabbar-item icon="shopping-cart" @click="goPage(1)" :info="carNum">购物车</van-tabbar-item>
+            <van-tabbar-item icon="contact"  @click="goPage(2)">我的</van-tabbar-item>
             
         </van-tabbar>
     </Layout>
@@ -75,7 +75,7 @@ import {
 } from "vant";
 import { dees } from "@/config";
 export default {
-  name: "ZeroBatchArea",
+  name: "beila",
 
   data() {
     return {
@@ -114,7 +114,7 @@ export default {
     //document.title = '雨花碧水龙庭店'
     this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
     this.userinfo = JSON.parse(window.localStorage.getItem("userinfo"));
-    window.localStorage.setItem("shopcode",this.$route.query.shopdescode)
+    window.localStorage.setItem("shopcode",this.$route.query.py)
     if (!this.userinfo) {
       this.mycar = JSON.parse(window.localStorage.getItem("mycar"));
 
@@ -216,6 +216,7 @@ export default {
       this.$router.push("/detail?pid=" + d);
     },
     goPage(a) {
+     // alert(a)
       if (!this.wxinfo) {
         //alert(1)
         let url =
@@ -234,7 +235,7 @@ export default {
     },
     queryShopDes() {
       getShopDes({
-        py: this.$route.query.shopdescode
+        py: window.localStorage.getItem("shopcode")
       }).then(res => {
         //  console.log(res)
         this.soldNum = res.data.soldNum;
@@ -251,14 +252,13 @@ export default {
         if (res.code == 0) {
           window.localStorage.setItem("userinfo", JSON.stringify(res.data));
           if (a == 1) {
-            this.$router.push(
-              "/mycar?shopdescode=" + this.$route.query.shopdescode
-            );
+            this.$router.push({path:"/mycar?py="+this.$route.query.py});
             //window.location.href="/car?form=limit"
           } else if (a == 2) {
-            this.$router.push(
-              "/user?shopdescode=" + this.$route.query.shopdescode
-            );
+            this.$router.push({path:"/user?py="+this.$route.query.py}
+            // this.$router.push(
+            //   "/user?py=" + this.$route.query.py
+             );
           }
         } else if (res.code == 2) {
           this.$router.push("/loginment?state=" + a);

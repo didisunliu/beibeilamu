@@ -13,7 +13,7 @@
 import { getWeixinUserInfo, getMemberByOpenId } from "@/iao/home/query";
 
 export default {
-  name: "ZeroBatchArea",
+  name: "beila",
   computed: {},
   data() {
     return {

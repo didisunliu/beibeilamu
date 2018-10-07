@@ -35,7 +35,7 @@ import { getPay, getOrderInfo, goPay } from "@/iao/home/query";
 import { Toast, NavBar, Icon, Step, Steps, Button } from "vant";
 import wx from "weixin-js-sdk";
 export default {
-  name: "ZeroBatchArea",
+  name: "beila",
   computed: {},
   data() {
     return {
@@ -118,7 +118,7 @@ export default {
             paySign: data.sign,
             success: function(res1) {
               this.$router.push(
-                "/user?shopdescode=" + window.localStorage.getItem("shopcode")
+                "/user?py=" + window.localStorage.getItem("shopcode")
               );
               // alert(1)
               //alert(JSON.stringify(res1))

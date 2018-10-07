@@ -104,7 +104,7 @@
         import { Toast,NavBar,Icon,Tab, Tabs,Button,Panel,Cell,Search  } from 'vant'
         
         export default {
-            name: 'ZeroBatchArea',
+            name: 'beila',
             computed: {
                 
                 

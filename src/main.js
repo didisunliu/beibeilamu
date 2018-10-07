@@ -10,7 +10,7 @@ Vue.use(configPlugin)
 import { appInstall, $app } from './lib/hybrid'
 Vue.use(appInstall)
 import store from './store'
-
+import 'babel-polyfill'
 
 
 // import FastClick from 'fastclick'

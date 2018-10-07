@@ -59,7 +59,7 @@
     import { Toast,Icon,Cell ,NavBar,CellGroup ,Button,Popup   } from 'vant'
     import QrcodeVue from 'qrcode.vue'
 	export default {
-		name: 'ZeroBatchArea',
+		name: 'beila',
         computed: {
             
             
@@ -93,7 +93,7 @@
             },
             goBack(){
                 this.$router.push(
-        "/index?shopdescode=" + window.localStorage.getItem("shopcode")
+        "/index?py=" + window.localStorage.getItem("shopcode")
       );
             },
             onSubmit(){
@@ -102,13 +102,13 @@
             onClickRight(){
                
                 this.$router.push(
-        "/index?shopdescode=" + window.localStorage.getItem("shopcode")
+        "/index?py=" + window.localStorage.getItem("shopcode")
       );
             },
             onGotocar(){
                 //this.$router.push('/index');
                 this.$router.push(
-        "/mycar?shopdescode=" + window.localStorage.getItem("shopcode")
+        "/index?py=" + window.localStorage.getItem("shopcode")
       );
             },
             onClickloginOut(){

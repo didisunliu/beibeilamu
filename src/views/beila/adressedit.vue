@@ -22,14 +22,18 @@
                 placeholder="请输入电话"
                 required
             />
-            <van-field
+            <!-- <van-field
                 v-model="areasname"
                 label="地区"
                 @click="chooseArea"
                  placeholder="请选择地区"
-                 
+                 disabled
                 required
-            />
+            /> -->
+          
+            <van-cell title="地区"  required  is-link   @click="chooseArea" :value="areasname">
+              
+            </van-cell>
             <van-field
                 v-model="address"
 
@@ -73,7 +77,7 @@ import {
 } from "vant";
 
 export default {
-  name: "ZeroBatchArea",
+  name: "beila",
   computed: {},
   data() {
     return {
@@ -122,7 +126,7 @@ export default {
       this.show=false
     },
     chooseArea(){
-        //alert(12)
+       // alert(12)
         this.show=true;
     },
     chooseOk(e){
@@ -192,13 +196,16 @@ export default {
       })
     },
     savaAddress(){
-      addAddress({
-        memberId :this.userinfo.memberId,
+      if(this.$route.query.id){
+        this.editorAddress()
+      }else{
+addAddress({
+        memberId :this.userinfo?this.userinfo.memberId : '',
         name  :this.name,
         mobile  :this.mobile,
-        provinceId  :this.areasId[0].areaId,
-        cityId  :this.areasId[1].areaId,
-        areaId  :this.areasId[2].areaId,
+        provinceName  :this.areasId[0].shortName,
+        cityName  :this.areasId[1].shortName,
+        areaName  :this.areasId[2].shortName,
         address :this.address,
         def  :this.def?1:0,
       }).then(res=>{
@@ -207,32 +214,35 @@ export default {
             this.$router.back(-1);
         }
       })
+      }
+      
     },
     editorAddress(){
       updateAddress({
         id:this.$route.query.id,
-         memberId :this.userinfo.memberId,
+         memberId :this.userinfo?this.userinfo.memberId : '',
         name  :this.name,
         mobile  :this.mobile,
-        provinceId  :this.areasId[0].areaId,
-        cityId  :this.areasId[1].areaId,
-        areaId  :this.areasId[2].areaId,
+        provinceName  :this.areasId[0].shortName,
+        cityName  :this.areasId[1].shortName,
+        areaName  :this.areasId[2].shortName,
         address :this.address,
         def  :this.def?1:0,
       }).then(res=>{
-
+            Toast("更新成功")
+            this.$router.back(-1);
       })
     },
     deladdress(){
       if(this.$route.query.id){
         delDefAddress({
           id:this.$route.query.id,
-         memberId :this.userinfo.memberId,
+         memberId :this.userinfo?this.userinfo.memberId : '',
 
         }).then(rs=>{
           if(rs.code==0){
             Toast("删除成功")
-             this.$router.push("/adresslist");
+             this.$router.back(-1);
           }
         })
       }else{

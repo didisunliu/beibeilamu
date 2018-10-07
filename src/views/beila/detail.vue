@@ -175,7 +175,7 @@ import {
 } from "vant";
 import { dees } from "@/config";
 export default {
-  name: "ZeroBatchArea",
+  name: "beila",
 
   data() {
     return {
@@ -400,7 +400,7 @@ this.isAdd=!this.isAdd
     },
     goHome() {
       this.$router.push(
-        "/index?shopdescode=" + window.localStorage.getItem("shopcode")
+        "/index?py=" + window.localStorage.getItem("shopcode")
       );
     },
     goUser() {
@@ -424,14 +424,14 @@ this.isAdd=!this.isAdd
         if (res.code == 0) {
           window.localStorage.setItem("userinfo", JSON.stringify(res.data));
           if (a == 1) {
-              this.$router.push( "/mycar?shopdescode=" + window.localStorage.getItem("shopcode"));
+              this.$router.push( "/mycar?py=" + window.localStorage.getItem("shopcode"));
           }
           if (a == 2) {
             this.$router.push(
-              "/user?shopdescode=" + window.localStorage.getItem("shopcode")
+              "/user?py=" + window.localStorage.getItem("shopcode")
             );
           }
-          // this.$router.push( "/mycar?shopdescode=" + window.localStorage.getItem("shopcode"));
+          // this.$router.push( "/mycar?py=" + window.localStorage.getItem("shopcode"));
           //window.location.href="/car?form=limit"
         } else if (res.code == 2) {
           this.$router.push("/loginment?state="+a);
