@@ -10,19 +10,21 @@
                     <van-tab title="已提货"> </van-tab>
                 </van-tabs>
                 <div class="olist" v-if="active==0">
-                    <!-- <van-list v-model="loading" :finished="finished" @load="onLoad" :offset="10"  class="boxlist"> -->
-             <template v-if="allList.length>0">
+                    
+              <template v-if="allList.length>0">
+                <van-list v-model="loading" :finished="finished" @load="onLoad" :offset="10"  class="boxlist"> 
                      <van-cell v-for="item in allList" class="boxlist"  >     
                     <div class="oitem"  >
                         <p class="pbox">订单编号：{{item.orderCode}} <span class="red">{{orderstate[item.state]}}</span></p>
                         <van-cell  is-link >
                             <div Slot="title">
-                                <img :src="imageURL" alt="" class="goodsicon">
-                                <img :src="imageURL" alt="" class="goodsicon">
-                                <img :src="imageURL" alt="" class="goodsicon">
+                              <template v-for="v in item.details">
+                                <img :src="v.mainPictureUrl" alt="" class="goodsicon">
+                              </template>
+                             
                             </div>
                         </van-cell>
-                        <p class="price">{{item.createTime}} <span>共1件商品 <b>￥{{(item.totalMoney*0.01).toFixed(2)}}</b></span></p>
+                        <p class="price">{{item.createTime}} <span>共{{item._num}}件商品 <b>￥{{(item.totalMoney*0.01).toFixed(2)}}</b></span></p>
                         <p class="pbox clearfix">
                           <em  v-if="item.state!=1">提货单号：{{item.pickupCode}}</em>
                            <van-button v-if="item.state==1" @click="goToPay(item)" class="fl" size="small"  type="danger" plain>去付款</van-button>
@@ -33,8 +35,8 @@
                     </div>
                      </van-cell>
             
-                     <!-- </van-list> -->
-                     </template>
+                      </van-list> 
+                      </template>
                     <template  v-else>
                        
                   <div class="nulllist" v-if="loaded">
@@ -43,7 +45,7 @@
                      
                   </div>
                   
-                </template>
+                </template> 
                    
                 </div>
                 <div class="olist" v-if="active==1">
@@ -57,7 +59,7 @@
                                 <img :src="imageURL" alt="" class="goodsicon">
                             </div>
                         </van-cell>
-                        <p class="price">{{item.createTime}} <span>共1件商品 <b>￥{{(item.totalMoney*0.01).toFixed(2)}}</b></span></p>
+                        <p class="price">{{item.createTime}} <span>共{{item._num}}件商品 <b>￥{{(item.totalMoney*0.01).toFixed(2)}}</b></span></p>
                         <p class="pbox clearfix "><i  v-if="item.state!=1">提货单号：{{item.pickupCode}}</i><van-button v-if="item.state==1" class="fl" size="small"  type="danger"  @click="goToPay(item)" plain>去付款</van-button>
                         <van-button v-if="item.state==2" class="fl" size="small"  type="danger" plain>确认提货</van-button>
                         <van-button v-if="item.state==3" class="fl" size="small"  type="default" plain>删除</van-button>
@@ -86,7 +88,7 @@
                                 <img :src="imageURL" alt="" class="goodsicon">
                             </div>
                         </van-cell>
-                        <p class="price">{{item.createTime}} <span>共1件商品 <b>￥{{(item.totalMoney*0.01).toFixed(2)}}</b></span></p>
+                        <p class="price">{{item.createTime}} <span>共{{item._num}}件商品 <b>￥{{(item.totalMoney*0.01).toFixed(2)}}</b></span></p>
                         <p class="pbox">提货单号：{{item.pickupCode}}<van-button v-if="item.state==1" class="fl" size="small"  type="danger" plain>去付款</van-button>
                         <van-button v-if="item.state==2" class="fl" size="small"  type="danger" plain>确认提货</van-button>
                         <van-button v-if="item.state==3" class="fl" size="small"  type="default" plain>删除</van-button>
@@ -115,7 +117,7 @@
                                 <img :src="imageURL" alt="" class="goodsicon">
                             </div>
                         </van-cell>
-                        <p class="price">{{item.createTime}} <span>共1件商品 <b>￥{{(item.totalMoney*0.01).toFixed(2)}}</b></span></p>
+                        <p class="price">{{item.createTime}} <span>共{{item._num}}件商品 <b>￥{{(item.totalMoney*0.01).toFixed(2)}}</b></span></p>
                         <p class="pbox">提货单号：{{item.pickupCode}} <van-button v-if="item.state==1" class="fl" size="small"  type="danger" plain>去付款</van-button>
                         <van-button v-if="item.state==2" class="fl" size="small"  type="danger" plain>确认提货</van-button>
                         <van-button v-if="item.state==3" class="fl" size="small"  type="default" plain>删除</van-button>
@@ -178,8 +180,8 @@ export default {
         type: 1,
         memberId:null,
         state: null,
-        "page.pageNum": 1,
-        "page.pageSize": 10
+        "pager.pageNum": 1,
+        "pager.pageSize": 10
       },
 
       wxinfo: null,
@@ -190,11 +192,12 @@ export default {
     //this.init()
     this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
     this.userinfo = JSON.parse(window.localStorage.getItem("userinfo"));
-    // this.getOrder(this.form);
+    //this.getOrder(this.form);
     this.onLoad()
   },
   methods: {
     onLoad() {
+      //alert(1)
       this.form.memberId=this.userinfo?this.userinfo.memberId : 2
       this.getOrder(this.form);
     },
@@ -215,12 +218,16 @@ export default {
     getOrder(d) {
       queryOrder(d).then(res => {
         if (!res.code) {
-          this.loaded=true
+          //this.loaded=true
           if (res.data.length == 0) {
             this.finished = true;
           } else {
-            this.allList = res.data;
+            this.allList = this.allList.concat(res.data);
             res.data.forEach(element => {
+                element._num=0
+                element.details.forEach(el=>{
+                   element._num +=el.count
+                })
                 if(element.state==1){
                   this.fList.push(element)
                 }else if(element.state==2){
@@ -229,7 +236,7 @@ export default {
                   this.tList.push(element)
                 }
             });
-            this.form["page.pageNum"] = this.form["page.pageNum"] + 1;
+            this.form["pager.pageNum"] = this.form["pager.pageNum"] + 1;
             //  console.log(this.formLine["pager.pageNum"])
             if (res.data.length < 10) {
               this.finished = true;

@@ -216,6 +216,7 @@ export default {
         
         this.getMycar()
     }
+    this.value=this.$route.query.count?this.$route.query.count:1
   },
   methods: {
     countdown(sec) {
@@ -379,7 +380,7 @@ this.isAdd=!this.isAdd
           
             if(!this.userinfo) {
                
-                this.$router.push("/loginment?state=0");
+                this.$router.push("/loginment?state=0&pid="+this.$route.query.pid+"&count="+this.value);
                 
             }else{
                

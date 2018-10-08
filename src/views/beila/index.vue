@@ -9,6 +9,7 @@
         <!-- <van-nav-bar title="标题" fixed class="topLogo" >
             fdf
         </van-nav-bar> -->
+        <van-loading type="spinner"  v-show="showLoading" color="white" class="loading" />
         <div class="userInfo">
                 <van-search placeholder="请输入搜索关键词" v-model="value" @input="onSearch" />
                 
@@ -36,7 +37,7 @@
                 <p class="redp clearfix"><template v-if="item.presellTime">预售时间：{{item.presellTime | formatDate}}</template><span>已售 <b>{{item.soldNumber}}</b> 份<template v-if="item.numberType==2">/ 限量{{item.number}}份</template></span></p>
                 <p class="redp clearfix"  v-if="item.pickupTime">提货时间：{{item.pickupTime | formatDate}}</p>
                 <p class="redp clearfix">￥<big>{{item.price*0.01}}</big> <del>￥{{item.originalPrice*0.01}}</del></p>
-                <b class="like"><van-icon name="like-o"  /> <i>关注</i></b> 
+                <b :class="isAdd?'like yes':'like'" @click="onClickLike"><van-icon :name="isAdd?'like':'like-o'"      /> <i>{{isAdd?'已关注':'关注'}}</i></b> 
                 <a v-if="item.state==3" class="disable">加入购物车</a>
                 <a v-else @click="addToCar(item)">加入购物车</a>
                 
@@ -49,6 +50,8 @@
             <van-tabbar-item icon="contact"  @click="goPage(2)">我的</van-tabbar-item>
             
         </van-tabbar>
+        
+        
     </Layout>
     
     
@@ -64,6 +67,7 @@ import {
   subscribe
 } from "@/iao/home/query";
 import {
+  Loading,
   Toast,
   List,
   NavBar,
@@ -79,6 +83,8 @@ export default {
 
   data() {
     return {
+      isAdd:false,
+      showLoading:true, 
       wxname: "wxname",
       active: 0,
       carNum: null,
@@ -108,13 +114,13 @@ export default {
   },
 
   mounted() {
-    //this.init()
-    // window.localStorage.removeItem("wxinfo")
-    //window.localStorage.removeItem("userinfo")
-    //document.title = '雨花碧水龙庭店'
+    
     this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
     this.userinfo = JSON.parse(window.localStorage.getItem("userinfo"));
-    window.localStorage.setItem("shopcode",this.$route.query.py)
+    if(this.$route.query.py){
+      window.localStorage.setItem("shopcode",this.$route.query.py)
+    }
+    
     if (!this.userinfo) {
       this.mycar = JSON.parse(window.localStorage.getItem("mycar"));
 
@@ -132,6 +138,46 @@ export default {
   },
 
   methods: {
+    onClickLike(){
+       
+       if (!this.wxinfo.openid){
+          let url =
+          "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx43fd4135600dcee3&redirect_uri=" +
+          dees.limitUrl +
+          "&response_type=code&scope=snsapi_userinfo&state=0#wechat_redirect";
+        window.location.href = url;
+       }
+        if(this.isAdd){
+          
+            this.clickSubscribe()
+        }else{
+           
+            this.clickUnsubscribe()
+        }
+    },
+    clickSubscribe() {
+      if (this.wxinfo.openid) {
+        subscribe({
+          productId: this.$route.query.pid,
+          openId: this.wxinfo.openid
+        }).then(res => {
+this.isAdd=!this.isAdd
+        });
+      }
+    },
+    clickUnsubscribe() {
+        
+        if (this.wxinfo.openid) {
+        unsubscribe({
+          productId: this.$route.query.pid,
+          openId: this.wxinfo.openid
+        }).then(res => {
+            this.isAdd=!this.isAdd
+        });
+      }
+     
+     
+    },
     getMycar() {
       queryMyCar({
         memberId: this.userinfo.memberId
@@ -181,6 +227,7 @@ export default {
         //console.info(res.data)
 
         if (!res.code) {
+          this.showLoading=false
           if (res.data.length == 0) {
             this.finished = true;
           } else {
@@ -252,10 +299,10 @@ export default {
         if (res.code == 0) {
           window.localStorage.setItem("userinfo", JSON.stringify(res.data));
           if (a == 1) {
-            this.$router.push({path:"/mycar?py="+this.$route.query.py});
+            this.$router.push({path:"/mycar?py="+window.localStorage.getItem("shopcode")});
             //window.location.href="/car?form=limit"
           } else if (a == 2) {
-            this.$router.push({path:"/user?py="+this.$route.query.py}
+            this.$router.push({path:"/user?py="+window.localStorage.getItem("shopcode")}
             // this.$router.push(
             //   "/user?py=" + this.$route.query.py
              );
@@ -299,6 +346,7 @@ export default {
   },
   components: {
     //Tabbar, TabbarItem
+    [Loading.name]: Loading,
     [List.name]: List,
     [Cell.name]: Cell,
     [Search.name]: Search,
@@ -318,6 +366,7 @@ export default {
 };
 </script>
 <style rel="stylesheet/scss" lang="scss" scoped>
+
 .guige {
   color: #888;
   font-size: 12px;
@@ -366,7 +415,6 @@ export default {
   position: absolute;
   right: 100px;
   bottom: 0px;
-  color: #888;
   font-size: 14px;
   font-weight: normal;
   color: #999;
@@ -378,6 +426,9 @@ export default {
   i {
     vertical-align: middle;
   }
+}
+.yes{
+    color: #f85;border: solid 1px #f85;
 }
 .main {
   background-color: #f5f5f5;
@@ -541,5 +592,19 @@ export default {
     padding: 5px 0px;
     margin-bottom: 5px;
   }
+}
+.van-loading{
+      color: white;
+    position: fixed;
+    z-index: 9;
+    padding: 10px;
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, .5);
+    width: 60px;
+    height: 60px;
+    top: 50%;
+    left: 50%;
+    margin-top: -30px;
+    margin-left: -30px;
 }
 </style>

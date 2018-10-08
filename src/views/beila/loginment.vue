@@ -226,7 +226,10 @@ export default {
           } else if (this.state == 2) {
             //ert(1);
             this.$router.push("/user?form=limit");
-          } else {
+          } else if (this.state == 0) {
+            //ert(1);
+            this.$router.push("/detail?pid="+this.$route.query.pid+"&count="+this.$route.query.count);
+          } else{
             this.$router.push(
               "/index?py=" + window.localStorage.getItem("shopcode")
             );

@@ -21,8 +21,7 @@
                         <!-- <span @click="show=true"><van-icon name="qr" /></span> -->
                       </div>
                 </div> 
-                {{wxinfo}}
-                {{userinfo}}
+              
             <van-cell-group>
                     
                 <van-cell title="全部订单" icon="pending-orders" is-link to="/orderlist?type=0" />
