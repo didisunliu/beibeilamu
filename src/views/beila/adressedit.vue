@@ -19,6 +19,7 @@
                 v-model="mobile"
 
                 label="电话"
+                
                 placeholder="请输入电话"
                 required
             />
@@ -55,7 +56,8 @@
        </div>
 
        <van-popup v-model="show" position="bottom" :overlay="true">
-   <van-picker :columns="columns" @change="onChange" value-key="shortName" :show-toolbar="true" @confirm="chooseOk" @cancel="onCancel"  />
+   <!-- <van-picker :columns="columns" @change="onChange" value-key="shortName" :show-toolbar="true" @confirm="chooseOk" @cancel="onCancel"  /> -->
+   <van-area :area-list="areaList" value="110101"  @confirm="chooseOk" @cancel="onCancel" />
 </van-popup>
     </Layout>
     
@@ -63,6 +65,7 @@
 </template>
 <script>
 import { getArea,addAddress,updateAddress,queryDefAddress,delDefAddress } from "@/iao/home/query";
+import area from "@/lib/area";
 import {
   Toast,
   Icon,
@@ -73,7 +76,8 @@ import {
   Popup,
   Field,
   Switch,
-  Picker 
+  Picker ,
+  Area 
 } from "vant";
 
 export default {
@@ -87,25 +91,26 @@ export default {
       def: false,
       name:'',
       mobile:'',
+      areaList:area,
       areasId:null,
       address:'',
       areasname:'',
-      columns: [{
-        values:[{
-          shortName:"请选择",
-          areaId:""
-        }]
-      },{
-        values:[{
-          shortName:"请选择",
-          areaId:""
-        }]
-      },{
-        values:[{
-          shortName:"请选择",
-          areaId:""
-        }]
-      }],
+      // columns: [{
+      //   values:[{
+      //     shortName:"请选择",
+      //     areaId:""
+      //   }]
+      // },{
+      //   values:[{
+      //     shortName:"请选择",
+      //     areaId:""
+      //   }]
+      // },{
+      //   values:[{
+      //     shortName:"请选择",
+      //     areaId:""
+      //   }]
+      // }],
       firstLevel:[],
       secondLevel:[],
       thirtLevel:[]
@@ -116,6 +121,7 @@ export default {
     if(this.$route.query.id){
       this.queryAddress(this.$route.query.id)
     }
+  
   },
   methods: {
     goBack() {
@@ -130,16 +136,17 @@ export default {
         this.show=true;
     },
     chooseOk(e){
-      console.log(e)
-      this.areasId=e
-      this.areasname=e[0].shortName+e[1].shortName+e[2].shortName
+      //console.log(e)
+      // this.areasId=e
+       this.areasname=e[0].name+e[1].name+e[2].name
        this.show=false
     },
-    onChange(picker, values,index) {
-      console.log(values[index].areaId)
-      this.queryInfo(values[index].areaId,index+1)
-     // picker.setColumnValues(1, citys[values[0]]);
-    },
+
+    // onChange(picker, values,index) {
+    //   console.log(values[index].areaId)
+    //   this.queryInfo(values[index].areaId,index+1)
+    //  // picker.setColumnValues(1, citys[values[0]]);
+    // },
     queryAddress(d){
       queryDefAddress({
         id:d
@@ -259,7 +266,8 @@ addAddress({
     [CellGroup.name]: CellGroup,
     [Switch.name]: Switch,
     [Picker .name]: Picker ,
-    [Field.name]: Field
+    [Field.name]: Field,
+    [Area .name]: Area ,
   }
 };
 </script>

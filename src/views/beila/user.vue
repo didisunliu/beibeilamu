@@ -24,7 +24,7 @@
               
             <van-cell-group>
                     
-                <van-cell title="全部订单" icon="pending-orders" is-link to="/orderlist?type=0" />
+                <van-cell title="全部订单" icon="pending-orders" is-link to="/orderlist" />
                 <van-cell title="未付款" icon="cash-back-record" class="iconred" is-link to="/orderlist?type=1" />
                 <van-cell title="待提货" icon="clock" class="iconyellow" is-link to="/orderlist?type=2" />
                 <van-cell title="已提货" icon="passed" class="icongreen" is-link to="/orderlist?type=3" />

@@ -8,7 +8,7 @@
             <div class="odcenter">
                 <img src="/static/images/timg.jpg" alt="" class="jb">
                 <p class="small">可提现金额（元）</p>
-                <p class="rbm"> ￥<b>1245.8</b> </p>
+                <p class="rbm"> ￥<b>{{yesrmb}}</b> </p>
                 
             </div>
             <p class="small bdor">可提现金额 = 总金额 - 审核中的金额</p>
@@ -17,24 +17,24 @@
                             <van-col span="12" class="center">
                                 <p class="p1">总金额（元）</p>
                                 
-                                <p class="p3">1245.8</p>
+                                <p class="p3">{{total}}</p>
                             </van-col>
                             <van-col span="12" class="center bdf">
                                 <p class="p1">审核中的金额（元）</p>
                               
-                                <p class="p3">0</p>
+                                <p class="p3">{{auditing}}</p>
                             </van-col>
                            
                         </van-row>
             </div>
             <div class="bton">
-                    <van-button size="large" type="primary"   class="mg">申请提现</van-button>
+                    <van-button size="large" type="primary" :disabled="btn" @click="applyMoney"  class="mg">申请提现</van-button>
             </div>
             <van-cell-group>
                     
                
-                <van-cell title="交易记录" icon="records" class="iconyellow" is-link  />
-                <van-cell title="到账查询" icon="pending-orders" class="iconyellow" is-link  />
+                <van-cell title="提现记录" icon="records" class="iconyellow" is-link  />
+                <!-- <van-cell title="到账查询" icon="pending-orders" class="iconyellow" is-link  /> -->
                     
             </van-cell-group>   
             
@@ -42,9 +42,6 @@
         </div> 
 
 
-        <van-popup v-model="show">
-            <img src="/static/images/qq.png" alt="">
-        </van-popup>
     </Layout>
     
     
@@ -52,8 +49,8 @@
 <script>
 
    
-    import { querySmallBatch, getBehaviorCate, getBehaviorSupply } from '@/iao/home/query'
-    import { Toast,Icon,Cell ,NavBar,CellGroup ,Row, Col,Button,Popup   } from 'vant'
+    import { getDistributorMoney, getApply } from '@/iao/home/query'
+    import { Toast,Icon,Cell ,NavBar,CellGroup ,Row, Col,Button,Dialog   } from 'vant'
     
 	export default {
 		name: 'beila',
@@ -63,21 +60,58 @@
         },
         data() {
 			return {
-				active: 0,
-                show:false,
-                result:["a"],
-                imageURL:"/static/images/qq.png"
+                yesrmb:0,
+                total:0,
+                auditing:0,
+                shopinfo:null,
+                btn:false
             }
         },
         mounted() {
+            this.shopinfo = JSON.parse(window.localStorage.getItem("shopinfo"));
 	        //this.init()
         },
         methods: {
-            onClickMiniBtn() {
-                
+            queryDistributorMoney() {
+                getDistributorMoney({
+                    'distributorId': this.shopinfo.distributorId
+                }).then(res=>{
+                    if(!res.code){
+                        let data=res.data
+                        this.yesrmb=(data.totalMoeny / 100.0).toFixed(2)
+                        this.total =((data.totalMoeny + data.auditingMoney) / 100.0).toFixed(2)
+                        this.auditing=(data.auditingMoney / 100.0).toFixed(2)
+                        if(data.state == 1 || data.totalMoeny <= 0){
+                            this.btn=true
+                        }
+                    }else{
+                        console.log(res.message)
+                    }
+                })
             },
-            onClickBigBtn(){
-
+            applyMoney(){
+                Dialog.confirm({
+                title: '',
+                message: '确定申请提现？'
+                }).then(() => {
+                // on confirm
+                this.queryApply()
+                    
+                }).catch(() => {
+                // on cancel
+                });
+            },
+            queryApply(){
+                getApply({
+                    'distributorId': this.shopinfo.distributorId
+                }).then(res=>{
+                    if(!res.code){
+                        Toast("申请成功，请等待审核结果。")
+                        this.btn=true
+                    }else{
+                        console.log(res.message)
+                    }
+                })
             },
             goBack(){
                 this.$router.back(-1)
@@ -99,7 +133,7 @@
             [Icon.name]: Icon ,
             [NavBar.name]: NavBar ,
             [Button .name]: Button  ,
-            [Popup  .name]: Popup   ,
+            [Dialog  .name]: Dialog   ,
           
             [Cell .name]: Cell  ,
             [CellGroup .name]: CellGroup ,

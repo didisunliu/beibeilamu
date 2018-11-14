@@ -9,7 +9,7 @@
                     <van-cell-group>
                         <van-cell >
                         <div class="goods" v-if="item.state!='6' && item.state!='5'">
-                                <div class="gcheckbox"><van-checkbox v-model="item.checked" @change="checkboxClick(item)" ></van-checkbox></div>
+                                <div class="gcheckbox"><van-checkbox v-model="item.checked" :disabled="(item.state==2 || item.state==3 || item.state==4)?true:false" @change="checkboxClick(item)" ></van-checkbox></div>
                                 <div class="ordergoods">
                                     <van-card
                                 :title="item.title"
@@ -18,7 +18,7 @@
                                 :price="item.price*0.01"
                                 :thumb="item.mainPictureUrl"
                                 > 
-                                <span slot="tags"  v-if="item.state=='2'">预售</span>
+                                <span slot="tags" class="red"  v-if="item.state=='2'">预售</span>
                                 <span slot="tags"  v-if="item.state=='3'">售罄</span>
                                 <span slot="tags"  v-if="item.state=='4'">下架</span>
                                 <div slot="footer">
@@ -52,8 +52,8 @@
             @submit="onDel"
             >
             
-           <span  @click="allCheck">
-                <van-checkbox class="pdleft" v-model="checked">全选</van-checkbox>
+           <span  @click="allCheckdel">
+                <van-checkbox class="pdleft" v-model="checkeddel">全选</van-checkbox>
             </span>
             <!-- <span slot="tip">
                 您的收货地址不支持同城送, <span>修改地址</span>
@@ -75,7 +75,7 @@
     
 </template>
 <script>
-import { queryMyCar, updateChecked,addMyCar ,delMyCar,updateMyCar} from "@/iao/home/query";
+import { queryMyCar, updateChecked,addMyCar ,delMyCar,updateMyCar,checkoutOrder} from "@/iao/home/query";
 import {
   Toast,
   NavBar,
@@ -100,6 +100,7 @@ export default {
       editor: false,
       active: 0,
       checked: null,
+      checkeddel: null,
       result: ["a"],
       imageURL: "/static/images/qq.png",
       wxinfo: null,
@@ -109,7 +110,10 @@ export default {
       editorCars: [],
       opertor: "编辑",
       allstate: null,
-      isnull:false
+      isnull:false,
+      ids:[],
+      orderlength:0,
+      allids:[]
     };
   },
   mounted() {
@@ -128,12 +132,19 @@ export default {
       this.$router.back(-1);
     },
     onSubmit() {
-      this.$router.push("/submit?py="+window.localStorage.getItem("shopcode"));
+      checkoutOrder({
+        memberId :this.userinfo.memberId
+      }).then(res=>{
+        if(!res.code){
+          this.$router.push("/submit?py="+window.localStorage.getItem("shopcode"));
+        }else{
+          Toast(res.msg)
+        }
+        
+      })
+      
     },
-    onDel() {},
-    editorcheckboxClick(e) {
-      // alert(e.editor)
-    },
+   
     Goeditor() {
       if (this.editor) {
         this.editor = false;
@@ -159,23 +170,19 @@ export default {
         }
 
         this.cars.forEach((el, index) => {
-          if(el.state==3  || el.state==4 || el.state==5 || el.state==6){
-             this.updateCheckout({
-              memberId:  this.userinfo.memberId,
-              cartIds: el.cartId,
-              checked: 0
-            });
+        
+          if(el.state==1){
+            this.orderlength +=1
+            this.allids.push(el.cartId)
           }
-          if (index == 0 && el.checked == 1) {
-            first = 1;
-            // this.checked=el.checked==1?true:false
-          } else {
-            if (first != el.checked) {
-              first = 0;
-            }
+          if(el.checked==1){
+            this.ids.push(el.cartId)
+            
           }
+          
         });
-        if (first == 1) {
+        
+        if(this.ids.length==this.orderlength){
           this.checked = true;
         }
         this.CalcTotel()
@@ -185,57 +192,56 @@ export default {
      
       let a = el.checked ? 1 : 0;
      //  alert(this.cars)
+    
+      if(a==1){
+        this.ids.push(el.cartId)
+      }else{
       
-      let goodschecked = this.cars.findIndex(car => car.checked != a);
-      // let goodschecked = null;
-      //  this.cars.forEach(el=>{
-      //    alert(el.checked + " "+a)
-      //    if(el.checked !=a){
-      //      goodschecked=-1
-      //    }
-      //  })
-      //-1 全部一样
+         this.ids.splice(this.ids.findIndex(v=>v==el.cartId),1)
       
-      if (goodschecked === -1 && el.checked == 0) {
-        this.allstate = true;
-        this.checked = false;
-      } else if (goodschecked === -1 && el.checked == 1) {
-        this.allstate = true;
-        this.checked = true;
       }
-      if (goodschecked != -1 && !el.checked) {
-        this.checked = false;
-      }
-      
+     
       if (!this.editor) {
-        
-        this.updateCheckout({
+         // alert(this.ids.toString())
+          this.updateCheckout({
           memberId:  this.userinfo.memberId,
-          cartIds: el.cartId,
-          checked: el.checked ? 1 : 0
-        });
+          cartIds:  this.ids.toString(),
+          });
+      }else{
+          if(!this.ids.toString()){
+            //alert(123)
+            this.checkeddel=false
+          }else{
+            
+           //alert(this.orderlength)
+            if(this.orderlength==this.ids.length){
+                this.checkeddel=true
+            }else{
+               this.checkeddel=false
+            }
+          }
       }
     },
+    allCheckdel(){
+
+    },
     allCheck() {
-      //alert(this.checked)
-      //this.checked = !this.checked
-
-      //alert(1)
-      let ids = [];
-
-      if (this.checked) {
-        this.cars.forEach(el => {
-          //ids.push(el.cartId)
-          el.checked = 1;
-        });
-      } else {
-       
-          this.cars.forEach(el => {
-            //ids.push(el.cartId)
-            el.checked = 0;
-          });
-        
-      }
+     
+      let vids=''
+      if(this.checked){
+          //vids=this.allids.toString()
+           this.cars.forEach(el=>{
+             if(el.state==1){
+               el.checked=1
+             }
+           })
+      }else{
+         this.cars.forEach(el=>{
+             if(el.state==1){
+               el.checked=0
+             }
+           })
+      }  
     },
   
             updatetoMyCar(e){
@@ -250,9 +256,26 @@ export default {
                 })
             },
     updateCheckout(d) {
-      //if()
+      
+     
       updateChecked(d).then(res => {
+        if(!res.code){
+          if(!d.cartIds){
+            //alert(123)
+            this.checked=false
+          }else{
+            
+           //alert(this.orderlength)
+            if(this.orderlength==d.cartIds.split(",").length){
+                this.checked=true
+            }else{
+               this.checked=false
+            }
+          }
+          //this.getMycar();
           this.CalcTotel()
+        }
+          
       });
     },
     //计算合计价格
@@ -272,6 +295,7 @@ export default {
                 d.push(el.cartId)
             }
         })
+       
         this.delOncar({
             memberId :this.userinfo.memberId,
             cartIds :d.join(",")
@@ -283,7 +307,7 @@ export default {
             //this.CalcTotel();
             // Toast(res.msg)
             if(!res.code){
-                 this.checked=false
+                 this.checkeddel=false
                 this.getMycar()
                 
             }else{
@@ -315,7 +339,9 @@ export default {
   clear: both;
   visibility: hidden;
 }
-
+.red{
+  color: #ff0000;
+}
 .main {
   background-color: #f1f1f1;
 }

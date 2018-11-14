@@ -117,3 +117,9 @@ export function formatDate(value) {
 	value = month + '月' + day +"日"+" "+h+":"+m
 	return value
 }
+
+export function Imgurl(value) {
+	if (!value) return "";
+	value = "http://mgr.hnkbmd.com" + value;
+	return value;
+}

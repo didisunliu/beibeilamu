@@ -1,13 +1,10 @@
 <template>
     <Layout class="main">
         
-        <van-nav-bar title="确认订单"  left-text="返回" @click-left="goBack"    left-arrow fixed> </van-nav-bar>
+        <van-nav-bar title="代客下单"  left-text="返回" @click-left="goBack"    left-arrow fixed> </van-nav-bar>
         <div class="content">
           <div class="chooseType">
-            <!-- <van-radio-group v-model="radio" @change="changeFun">
-              <van-radio name="1" class="ddes">自提</van-radio>
-              <van-radio name="2" class="ddes">快递</van-radio>
-            </van-radio-group>  -->
+           
             <van-tabs type="card" v-model="active" @change="changeFun">
             <van-tab  title="自提"></van-tab>
             <van-tab  title="快递"></van-tab>
@@ -15,23 +12,40 @@
           </div>
           
             <div class="userInfo" v-if="active==0">
-                <p class="hed">收货人：<input type="text" :value="username"> <input type="text" :value="usertel"></p>
+                <p class="hed">提货人：<input type="text" :value="username" placeholder="提货人姓名"> <input type="text" :value="usertel" placeholder="提货人电话"></p>
                 <p class="blank" v-if="shopinfo.distributor">提货地点：{{shopinfo.provinceName+shopinfo.cityName+shopinfo.areaName+shopinfo.distributor.address}} {{shopinfo.distributor.name}}</p>
-                <p class="red" v-if="shopinfo.distributor">自提点：{{shopinfo.distributor.address+shopinfo.distributor.shopName}} {{shopinfo.distributor.mobile}}</p>
+                <p class="red" v-if="shopinfo.distributor">自提点：{{shopinfo.distributor.address+shopinfo.distributor.shopName}} </p>
             </div>
             <div class="userInfo" v-if="active==1">
-              <van-cell-group>
-                  <van-cell  @click="chooseAddress" is-link >
-                    <span slot="title"  v-if="addressinfo.name">
-                        收货人：{{addressinfo.name}}<br>
-                        手机：{{addressinfo.mobile}}<br>
-                        收件地址：{{addressinfo.provinceName+addressinfo.cityName+addressinfo.areaName+addressinfo.address}}
-                    </span>
-                  </van-cell>
-
-                </van-cell-group>
+              <p class="hed">收货人：<input type="text" :value="username" placeholder="收货人姓名"> <input type="text" :value="usertel" placeholder="收货人联系电话"></p>
+                <van-cell title="地址" is-link :value="caddress" @click="areashow=true" />
+                <van-field v-model="fulladdress" placeholder="详细地址" class="hinput" />
+                <van-popup v-model="areashow" position="bottom" :overlay="true">
+                <van-area :area-list="areaList" @confirm="chooseOk" @cancel="areashow=false" />
+                </van-popup>
+                
+              
                 
             </div>
+            <div class="choosebox">
+              <van-cell title="添加商品" is-link value="请选择" @click="goodsshow=true" />
+                <van-popup v-model="goodsshow" position="bottom" :overlay="true">
+                  <div class="goodsBox">
+                    <p><span class="left" @click="goodsshow=false">取消</span><span class="right" @click="chooseGood">确认</span></p>
+<van-checkbox-group v-model="result">
+                  <van-checkbox key="a" name="a" class="good" >
+                   <img src="http://thirdwx.qlogo.cn/mmopen/vi_32/DYAIOgq83eqS2qkEHGNWyOJyYbJzNrzPAwvNTpEnSzEgAFZibPdYUpYMDYMp2RE2SItcI4brPOLPpJo6G5EOjpw/132">
+                    <span class="sma">产品名称</span>
+                    <span class="sma">￥45.00 <del>￥55.00</del> </span>
+                  </van-checkbox>
+                  
+                </van-checkbox-group>
+                  </div>
+                  
+                
+                </van-popup>
+            </div>
+             
                 <van-card  v-for="item in orderList" :title="item.title"
                             :desc="item.specification"  
                             :num="item.num"
@@ -62,35 +76,12 @@
   button-text="提交订单"
   @submit="goOnline"
 />
-<!-- <van-popup v-model="show" position="bottom" :overlay="true">
-    <div class="out">
-        <p class="p1" v-if="radio==1">此商品需要您到店自提，请仔细确认地址！</p>
-        <p class="p1" v-if="radio==2">此商品需要您要求邮寄，请仔细确认地址！</p>
-        <p class="p2" v-if="radio==1 && shopinfo.distributor">提货地点：{{shopinfo.provinceName+shopinfo.cityName+shopinfo.areaName+shopinfo.distributor.address}} {{shopinfo.distributor.name}}</p>
-        <p class="p3" v-if="radio==1 && shopinfo.distributor">（自提点：{{shopinfo.distributor.address+shopinfo.distributor.shopName}} {{shopinfo.distributor.mobile}}）</p>
-        <p class="p2" v-if="radio==2" > 收货人：{{addressinfo.name}} 
-                        手机：{{addressinfo.mobile}}<br>
-                        收件地址：{{addressinfo.provinceName+addressinfo.cityName+addressinfo.areaName+addressinfo.address}} </p>
-        
-        
-        <p class="p4" v-if="radio==1">09月05号 16:00提货</p>
-        <div class="btbox">
-            <van-row gutter="10">
-                <van-col span="12"><van-button size="large" type="default" plain @click="show=false">取消付款</van-button></van-col>
-                <van-col span="12"><van-button size="large" type="danger" @click="goOnline" plain>确认订单</van-button></van-col>
-            </van-row>
-                      
-            
-            
-        </div>
-    </div>
-  </van-popup> -->
     </Layout>
     
     
 </template>
 <script>
-import { getShopDes, addOrder, enterOrder,buyNow } from "@/iao/home/query";
+import { getShopDes, addOrder, enterOrder,buyNow ,queryProduct} from "@/iao/home/query";
 import {
   Toast,
   NavBar,
@@ -106,17 +97,41 @@ import {
   Card,
   Popup,
   Button,
-  RadioGroup, Radio,CellGroup,Tabs,Tab 
+  RadioGroup, Radio,CellGroup,Tabs,Tab ,Field,
+  Area
 } from "vant";
-
+import AreaList from '@/lib/area';
 export default {
   name: "beila",
   computed: {},
+  components: {
+    [SubmitBar.name]: SubmitBar,
+    [NavBar.name]: NavBar,
+    [Icon.name]: Icon,
+    [Card.name]: Card,
+    [Stepper.name]: Stepper,
+    [CheckboxGroup.name]: CheckboxGroup,
+    [SwipeCell.name]: SwipeCell,
+    [Cell.name]: Cell,
+    [Popup.name]: Popup,
+    [Button.name]: Button,
+    [Col.name]: Col,
+    [Row.name]: Row,
+    [Checkbox.name]: Checkbox,
+    [RadioGroup.name]: RadioGroup,
+    [CellGroup.name]: CellGroup,
+    [Radio.name]: Radio,
+    [Tabs.name]: Tabs,
+    [Tab.name]: Tab,
+    [Area.name]: Area,
+    [Field.name]: Field,
+  },
   data() {
     return {
       active: 0,
       checked: false,
-      show: false,
+      areashow:  false,
+      goodsshow:  false,
       radio:"1",
       username: "",
       usertel: "",
@@ -126,6 +141,7 @@ export default {
       addressinfo: {},
       imageURL: "/static/images/qq.png",
       wxinfo: null,
+      fulladdress: null, 
       // userinfo: {
       //   memberId:2
       // },
@@ -133,31 +149,15 @@ export default {
       goodsnumber:null,
       goods:[],
       ems:0,
-      you:0
+      you:0,
+      areaList:AreaList,
+      caddress:'请选择'
     };
   },
   mounted() {
-    //this.init()
-    
-    //this.goodsnumber=window.location.href
-    this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
-    this.userinfo = JSON.parse(window.localStorage.getItem("userinfo"));
-    if(this.userinfo){
-      this.username = this.userinfo.name;
-      this.usertel = this.userinfo.mobile;
-    }else{
-       this.$router.push("/loginment?redirect_url=submit")
-    }
-    this.active=this.$route.query.active==1?this.$route.query.active:0
-    this.radio=this.$route.query.active==1?2:1
-   
-    this.queryShopDes();
-    if(this.$route.query.from=="mast"){
-     
-      this.goToBuy()
-    }else{
-      this.getMycar()
-    }
+
+   // this.queryShopDes();
+
     
   },
   methods: {
@@ -170,8 +170,14 @@ export default {
         document.title = res.data.distributor.shopName;
       });
     },
-    chooseAddress(){
-      this.$router.push("/adresslist?from=submit&py="+window.localStorage.getItem("shopcode")+"&pid="+this.$route.query.pid+"&count="+this.$route.query.count)
+    chooseOk(e){
+      
+      this.areashow=false;
+      this.caddress=e[0].name+e[1].name+e[2].name
+    },
+    chooseGood(){
+      this.goodsshow=false
+        //console.info(e)
     },
     goToBuy(){
       
@@ -230,7 +236,7 @@ export default {
       });
     },
     onSubmit() {
-      this.show = true;
+     // this.show = true;
     },
     goBack() {
       this.$router.back(-1);
@@ -238,7 +244,6 @@ export default {
     goOnline() {
       
       //this.$router.push("/online?py="+this.$route.query.py)
-    //return
       let d={
           memberId :this.userinfo.memberId,
           distributorId : this.shopinfo.distributor.distributorId,
@@ -278,10 +283,10 @@ export default {
      // console.log(this.radio)
       if(this.active==1){
        this.ems=this.you
-       this.radio=2
+      // this.radio=2
          this.CalcTotel()
       }else{
-        this.radio=1
+       // this.radio=1
         this.ems=0
         this.CalcTotel()
       }
@@ -297,27 +302,8 @@ export default {
          
         });
     }
-  },
-  components: {
-    [SubmitBar.name]: SubmitBar,
-    [NavBar.name]: NavBar,
-    [Icon.name]: Icon,
-    [Card.name]: Card,
-    [Stepper.name]: Stepper,
-    [CheckboxGroup.name]: CheckboxGroup,
-    [SwipeCell.name]: SwipeCell,
-    [Cell.name]: Cell,
-    [Popup.name]: Popup,
-    [Button.name]: Button,
-    [Col.name]: Col,
-    [Row.name]: Row,
-    [Checkbox.name]: Checkbox,
-    [RadioGroup.name]: RadioGroup,
-    [CellGroup.name]: CellGroup,
-    [Radio.name]: Radio,
-    [Tabs.name]: Tabs,
-    [Tab.name]: Tab,
   }
+  
 };
 </script>
 <style rel="stylesheet/scss" lang="scss" scoped>
@@ -328,12 +314,57 @@ export default {
   clear: both;
   visibility: hidden;
 }
-
+.choosebox{
+  padding: 10px;
+  background: #fff;
+}
+.right{
+  float: right;
+}
 .ddes{
   line-height: 30px;
   display: inline;
   font-size: 14px;
   vertical-align: middle
+}
+.goodsBox{
+  height:100vh;
+  p{
+    padding: 10px;
+    font-size: 14px;
+    .right{
+      color: #333;
+    }
+    .left{
+      color: #888;
+    }
+  }
+  .good{
+   
+    padding: 10px;
+    border-bottom:solid 1px #f1f1f1;
+    img{
+      width: 45px;
+      height: 45px;
+      float: left;
+    }
+    .sma{
+      display: block;
+      float: left;
+      width: 80%;
+      padding-left: 5px;
+      font-size: 12px;
+
+    }
+    .sma:last-child{
+      font-size: 14px;
+      color: #f00;
+      del{
+        color: #888;
+        font-size: 12px;
+      }
+    }
+  }
 }
 .chooseType{
   background: #fff;
@@ -393,9 +424,10 @@ export default {
   }
 }
 .van-cell {
-  padding: 10px 0px;
+  padding: 5px 0px;
   border-bottom: 1px solid #f1f1f1;
-  margin-bottom: 10px;
+  margin-bottom: 0px;
+  font-size: 12px;  
 }
 .del {
   background: #ff0000;
@@ -450,7 +482,7 @@ export default {
   position: relative;
   background: #fff;
   padding: 10px;
-  font-size: 12px;
+  font-size: 12px !important;
   p {
     line-height: 1.5;
   }
@@ -460,15 +492,23 @@ export default {
     border: solid 1px #eee;
     border-radius: 3px;
     padding: 3px;
+    background: #eee;
   }
   .hed {
     color: #333;
+    padding: 5px 0px;
+    border-bottom: solid 1px #f1f1f1;
   }
   .red {
     color: #ff0000;
   }
   .blank {
     color: #999;
+  }
+  .hinput{
+    input{
+      background: #eee;
+    }
   }
 }
 .userInfo::after {
@@ -532,6 +572,7 @@ export default {
     transparent 50%
   );
   background-size: 80px;
+ 
 }
 </style>
 <style rel="stylesheet/scss" lang="scss" >
@@ -542,4 +583,15 @@ export default {
 .van-radio__input{
   height: 26px !important;
 }
+.van-cell:not(:last-child)::after{
+     border-bottom-width: 0px;
+}
+.userInfo .van-field__control{
+  background:#eee;
+  border-radius: 3px;
+  //padding-left:3px;
+}
+ .van-checkbox__label{
+      width: 88% !important; 
+    }
 </style>

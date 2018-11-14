@@ -237,7 +237,7 @@ export function enterOrder(data) {
 		params: data
 	})
 }
-//请求支付
+//请求驻入微信js
 export function getPay(data) {
 	return request({
 		url: 'http://yx.jytzn.com/weixin/ticket/jssdk',
@@ -261,4 +261,146 @@ export function getOrderInfo(data) {
 		params: data
 	})
 }
+
+//购买记录
+export function buyRecord(data) {
+	return request({
+		url: '/api/order/buyRecord',
+		method: 'post',
+		params: data
+	})
+}
+
+//购买统计
+export function buyRecordTotal(data) {
+	return request({
+		url: '/api/order/buyRecordTotal',
+		method: 'post',
+		params: data
+	})
+}
+//查询是否关注
+export function isSubscription(data) {
+	return request({
+		url: '/api/productSubscription/isSubscription',
+		method: 'post',
+		params: data
+	})
+}
+//订单提交前检验
+export function checkoutOrder(data) {
+	return request({
+		url: '/api/shoppingCart/enterOrderCheck',
+		method: 'post',
+		params: data
+	})
+}
+
+
+// shopindex 商家信息  /api/order/shopIndex
+export function queryShopInfo(data) {
+	return request({
+		url: '/api/order/shopIndex',
+		method: 'post',
+		params: data
+	})
+}
+//查看排行
+export function queryPaihang(data) {
+	return request({
+		url: '/api/order/ranking',
+		method: 'post',
+		params: data
+	})
+}
+
+//代客下单 查询产品
+export function queryProduct(data) {
+	return request({
+		url: '/api/product/queryProduct',
+		method: 'post',
+		params: data
+	})
+}
+// 查询售后申请
+export function querySaleOrder(data) {
+	return request({
+		url: '/api/orderAfterSale/queryOrderAfterSale',
+		method: 'post',
+		params: data
+	})
+}
+// 取消售后
+export function cancelOrderAfterSale(data) {
+	return request({
+		url: '/api/orderAfterSale/cancelOrderAfterSale',
+		method: 'post',
+		params: data
+	})
+}
+// 申请售后
+export function saveOrderAfterSale(data) {
+	return request({
+		url: '/api/orderAfterSale/saveOrderAfterSale',
+		method: 'post',
+		params: data
+	})
+}
+//我的提成
+export function sumBrokerage(data) {
+	return request({
+		url: '/api/order/sumBrokerage',
+		method: 'post',
+		params: data
+	})
+}
+//我的结算中心
+export function getDistributorMoney(data) {
+	return request({
+		url: '/api/kickbackDetail/getDistributorMoney',
+		method: 'post',
+		params: data
+	})
+}
+//申请提现
+export function getApply(data) {
+	return request({
+		url: '/api/kickbackDetail/apply',
+		method: 'post',
+		params: data
+	})
+}
+//提现记录
+export function queryKickbackDetail(data) {
+	return request({
+		url: '/api/kickbackDetail/queryKickbackDetail',
+		method: 'post',
+		params: data
+	})
+}
+//删除订单
+export function deleteOrder(data) {
+	return request({
+		url: '/api/order/deleteOrder',
+		method: 'post',
+		params: data
+	})
+}
+//去提货
+export function pickupOrder(data) {
+	return request({
+		url: '/api/order/pickupOrder',
+		method: 'post',
+		params: data
+	})
+}
+//查看会员
+export function seeUser(data) {
+	return request({
+		url: '/api/order/seeUser',
+		method: 'post',
+		params: data
+	})
+}
+
 

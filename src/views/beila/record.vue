@@ -1,72 +1,56 @@
 <template>
         <Layout class="main">
             
-            <van-nav-bar title="查看会员"  left-text="返回" @click-left="goBack"    left-arrow fixed> </van-nav-bar>
+            <van-nav-bar title="提现记录"  left-text="返回" @click-left="goBack"    left-arrow fixed> </van-nav-bar>
             <div class="content">    
-                <div>
-                    <van-search placeholder="手机号、微信昵称查询" v-model="value" @input="onSearch" />
-                </div> 
+                <div class="wbg">
+                     <van-row>
+                        <van-col span="6" class="centers">
+                            <p class="p1">申请时间</p>
+                            
+                            
+                        </van-col>
+                        <van-col span="8" class="center">
+                            <p class="p1">提成的时间范围</p>
+                        
+                            
+                        </van-col>
+                        <van-col span="6" class="center">
+                            <p class="p1">提成金额</p>
+                            
+                            
+                        </van-col>
+                        <van-col span="4" class="center">
+                            <p class="p1">状态</p>
+                            
+                            
+                            
+                        </van-col>
+                    </van-row>   
+                </div>
                 
                 
                <van-list v-model="loading" :finished="finished" @load="onLoad">
-                   <template v-for="item in list" >
+                    <template v-for="item in list" >
                         <div>
                             <div class="itemO">
                                 <van-row>
-                                    <van-col span="8">
-                                        <p class="p1">{{item.mobile}}</p>
-                                       
-                                       
+                                    <van-col span="6"  class="centers">
+                                        <p class="p1">{{item.createTime}}</p>
                                     </van-col>
-                                    <van-col span="5" class="center">
-                                        <p class="p1">{{item.name}}</p>
-                                   
-                                       
+                                    <van-col span="8" class="centers">
+                                        <p class="p1">起：{{item.pointBeginTime}}<br>止：{{item.pointEndTime}}</p>
                                     </van-col>
-                                    <van-col span="5" class="center">
-                                        <p class="p3">订单数量</p>
-                                        <p class="p2">{{item.orderNum}}</p>
-                                       
+                                    <van-col span="6" class="centers">
+                                        <p class="p1">￥{{(item.totalMoney / 100.0).toFixed(2)}}</p>
                                     </van-col>
-                                    <van-col span="6" class="center">
-                                        <p class="p3">订单金额</p>
-                                        <p class="p2">{{item.totalMoney.toMoney()}}</p>
-                                       
-                                        
+                                    <van-col span="4" class="centers">
+                                        <p class="p1">{{(item.state!=3 ? states[item.state]:item.reject)}}</p>
                                     </van-col>
                                 </van-row>
                             </div>
                         </div>
                     </template>
-                    <!-- <template v-for="item in list" >
-                        <div>
-                            <div class="itemO">
-                                <van-row>
-                                    <van-col span="8">
-                                        <p class="p1">15575862586</p>
-                                       
-                                       
-                                    </van-col>
-                                    <van-col span="5" class="center">
-                                        <p class="p1">李明成</p>
-                                   
-                                       
-                                    </van-col>
-                                    <van-col span="5" class="center">
-                                        <p class="p3">订单数量</p>
-                                        <p class="p2">35</p>
-                                       
-                                    </van-col>
-                                    <van-col span="6" class="center">
-                                        <p class="p3">订单金额</p>
-                                        <p class="p2">1005.8</p>
-                                       
-                                        
-                                    </van-col>
-                                </van-row>
-                            </div>
-                        </div>
-                    </template> -->
                 </van-list>
                        
                     
@@ -85,7 +69,7 @@
     <script>
     
        
-        import { seeUser } from '@/iao/home/query'
+        import { queryKickbackDetail} from '@/iao/home/query'
         import { Toast,NavBar,Icon,Tab, Tabs,List,Panel,Cell,Search ,Row, Col  } from 'vant'
         
         export default {
@@ -96,16 +80,15 @@
             },
             data() {
                 return {
-                    active: 0,
-                    value: "",
-                    checked:false,
+                    
                     list: [],
                     loading: false,
                     finished: false,
                     shopinfo: null,
                     pageNum:1,
                     pageSize:10,
-                    
+                    states:{1:"审核中", 2:"汇款中", 3:"未通过", 4:"已完成"}
+                   
                 }
             },
             mounted() {
@@ -113,12 +96,11 @@
                 this.shopinfo = JSON.parse(window.localStorage.getItem("shopinfo"));
             },
             methods: {
-                querySeeuser() {
-                    seeUser({
+                getKickbackDetail() {
+                    queryKickbackDetail({
                         'distributorId': this.shopinfo.distributorId, 
-                        'keyword': this.value, 
-                        'pageNum': this.pageNum, 
-                        'pageSize': this.pageSize
+                        'pager.pageNum': this.pageNum, 
+                        'pager.pageSize': this.pageSize
                     }).then(res=>{
                         if (!res.code) {
                         //this.showLoading=false
@@ -141,12 +123,6 @@
                     })
                 },
                 
-                onSearch(){
-                    this.pageNum=1
-                    this.list=[]
-                    this.querySeeuser()
-    
-                },
                 goBack(){
                     this.$router.back(-1)
                 },
@@ -154,7 +130,17 @@
                     this.$router.push('/submit');  
                 },
                 onLoad() {
-                    this.querySeeuser()
+                    this.getKickbackDetail()
+                    // setTimeout(() => {
+                    //     for (let i = 1; i < 7; i++) {
+                    //     this.list.push(this.list.length + 1);
+                    //     }
+                    //     this.loading = false;
+
+                    //     if (this.list.length >= 40) {
+                    //     this.finished = true;
+                    //     }
+                    // }, 500);
                 },
                 changeTab(e){
                   
@@ -181,6 +167,13 @@
     </script>
     <style rel="stylesheet/scss" lang="scss" scoped>
         .clearfix:after{content:".";display:block;height:0;clear:both;visibility:hidden}
+        .wbg{
+            background: #f5f5f5;
+            border-bottom: solid 1px #ddd;
+            .p1{
+                color: #333;
+            }
+        }
         .fl{
             float: right;
             margin-top: -15px;
@@ -239,6 +232,9 @@
         .center{
             text-align: center;
             border-left: 1px solid #dddddd;
+        }
+        .centers{
+            text-align: center
         }
         .pbox{
             padding: 12px  16px;

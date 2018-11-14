@@ -4,18 +4,18 @@
         <van-nav-bar title="登录" fixed> </van-nav-bar>
         <div class="content">
            
-            <div class="wrigteBg">
+            <!-- <div class="wrigteBg">
                 <span>
                     <img :src="headImg" alt="" class="headImg">
-                    <!-- 点击修改 -->
+                   
                 </span>
             
-            </div>
+            </div> -->
              <van-cell-group>
-                <van-field v-model="name" label="姓名" />
+                <!-- <van-field v-model="name" label="姓名" /> -->
                 <van-field v-model="phone" label="手机号" placeholder="请输入手机号" :error-message="error" />
                 <van-field v-model="sms" center clearable label="短信验证码" placeholder="请输入短信验证码">
-                    <van-button slot="button" size="small" @click="sendCode" type="primary" :disabled="dis">{{sendtext}}</van-button>
+                    <van-button slot="button" size="small" @click="sendtoCode" type="primary" :disabled="dis">{{sendtext}}</van-button>
                 </van-field>
 
             </van-cell-group>
@@ -32,7 +32,7 @@
 
 </template>
 <script>
-import { sendCode, shoploginAndReg ,getShopByOpenId,getWeixinUserInfo} from "@/iao/home/query";
+import { sendCodes, shoploginAndReg ,getShopByOpenId,getWeixinUserInfo} from "@/iao/home/query";
 import { Toast, Field, NavBar, Cell, CellGroup, Button } from "vant";
 
 export default {
@@ -47,34 +47,45 @@ export default {
       headImg: "dd",
       codename: "code",
       sms: "",
+      shopinfo: null,
       wxinfo: null,
       dis: false,
       pass: true,
       mm: "",
       pagetitle: "登录",
-      sendtext: "发送验证码"
+      sendtext: "发送验证码",
+      soureUrl:"shopindex"
     };
   },
   mounted() {
-    this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
+    this.shopinfo = JSON.parse(window.localStorage.getItem("shopinfo"));
     //alert(window.localStorage.getItem("wxinfo"))
     //this.queryWeixinUserInfo();
     //return
-    if (!this.wxinfo) {
+    if (!this.shopinfo) {
+     
+      let Url=this.$route.query.redirect_url
+      if(!Url){
+        this.soureUrl=Url
+      }
+      //console.log(Url)
       this.queryWeixinUserInfo();
     } else {
-      this.headImg = this.wxinfo.headimgurl;
-      this.name = this.wxinfo.nickname;
-      this.openid = this.wxinfo.openid;
+     
+      this.$router.push("/shopindex");
+      // this.headImg = this.distributor_user.headimgurl;
+      // this.name = this.distributor_user.nickname;
+      // this.openid = this.distributor_user.openid;
     }
   },
   methods: {
-    sendCode() {
+    sendtoCode() {
       if (!/^1[34578]\d{9}$/.test(this.phone)) {
         Toast("手机号码有误，请重填");
         return false;
       }
-      sendCode({
+      
+      sendCodes({
         mobile: this.phone,
         tag: "1"
       }).then(res => {
@@ -122,31 +133,13 @@ export default {
           this.openid = res.data.openid;
           let a = res.data;
           window.localStorage.setItem("wxinfo", JSON.stringify(a));
-          this.checkout({
-            openId: this.openid
-          });
+          // this.checkout({
+          //   openId: this.openid
+          // });
         }
       });
     },
-    checkout(d) {
-      getShopByOpenId(d).then(res => {
-        //this.oid = JSON.stringify(res);
-        // if (!res.code) {
-        //   if (this.state == "1") {
-        //     this.$router.push("/mycar?form=limit&state="+ this.state);
-        //   } else if (this.state == "2") {
-        //     this.$router.push("/user?form=limit&state="+ this.state);
-        //   }
-        // } else if (res.code == 2) {
-        //   //没有登录 请登录
-        //   this.$router.push("/loginment?form=limit&state=" + this.state);
-        // } else if (res.code == 3) {
-        //   //没有数据要全部确认信息提交
-        //   this.loginment=true
-        //   this.$router.push("/loginment?form=limit&state=" + this.state);
-        // }
-      });
-    },
+   
 
     onSubmit() {
       let d = {
@@ -155,15 +148,15 @@ export default {
         mobile: this.phone,
         openId: this.openid,
         code: this.sms,
-        tag: "1"
+        tag: "2"
       };
 
       shoploginAndReg(d).then(res => {
         if (!res.code) {
           window.localStorage.setItem("shopinfo", JSON.stringify(res.data));
           //this.mm=JSON.stringify(res.data)
-          
-            this.$router.push("/shopindex?form=limit");
+        
+            this.$router.push("/"+this.soureUrl);
           
         } else {
           Toast(res.msg);

@@ -50,7 +50,9 @@
                 </div>
                 <div class="olist" v-if="active==1">
                  <template v-if="fList.length>0">
-                     <div class="oitem" v-for="item in fList">
+                   <van-list v-model="loading1" :finished="finished1" @load="onLoad1" :offset="10"  class="boxlist"> 
+                     <van-cell v-for="item in fList" class="boxlist"  >     
+                     <div class="oitem">
                         <p class="pbox">订单编号：{{item.orderCode}} <span class="red">{{orderstate[item.state]}}</span></p>
                         <van-cell  is-link >
                             <div Slot="title">
@@ -66,6 +68,10 @@
                         </p>
                         
                     </div>
+                     </van-cell>
+            
+                      </van-list> 
+                    
                     </template>
                     <template  v-else>
                        
@@ -79,7 +85,9 @@
                 </div>
                 <div class="olist" v-if="active==2">
                    <template v-if="sList.length>0">
-                     <div class="oitem" v-for="item in sList">
+                     <van-list v-model="loading2" :finished="finished2" @load="onLoad2" :offset="10"  class="boxlist"> 
+                     <van-cell v-for="item in sList" class="boxlist"  >     
+                     <div class="oitem">
                         <p class="pbox">订单编号：{{item.orderCode}} <span class="red">{{orderstate[item.state]}}</span></p>
                         <van-cell  is-link >
                             <div Slot="title">
@@ -95,6 +103,10 @@
                         </p>
                         
                     </div>
+                     </van-cell>
+            
+                      </van-list> 
+                     
                    </template>
                     <template  v-else>
                        
@@ -108,7 +120,9 @@
                 </div>
                 <div class="olist" v-if="active==3">
                     <template v-if="tList.length>0">
-                     <div class="oitem" v-for="item in tList" >
+                       <van-list v-model="loading3" :finished="finished3" @load="onLoad3" :offset="10"  class="boxlist"> 
+                     <van-cell v-for="item in tList" class="boxlist"  >     
+                    <div class="oitem" >
                         <p class="pbox">订单编号：{{item.orderCode}} <span class="red">{{orderstate[item.state]}}</span></p>
                         <van-cell  is-link >
                             <div Slot="title">
@@ -124,6 +138,10 @@
                         </p>
                         
                     </div>
+                     </van-cell>
+            
+                      </van-list> 
+                     
                     </template>
                     <template  v-else>
                        
@@ -172,14 +190,24 @@ export default {
       fList: [],
       sList: [],
       tList: [],
+      d0:this.$route.query.type?true:false,
+      d1:this.$route.query.type==1?false:true,
+      d2:this.$route.query.type==2?false:true,
+      d3:this.$route.query.type==3?false:true,
       orderstate: ["", "待付款", "待提货", "交易完成"],
       imageURL: "/static/images/qq.png",
       loading: false,
       finished: false,
+       loading1: false,
+      finished1: false,
+       loading2: false,
+      finished2: false,
+       loading3: false,
+      finished3: false,
       form: {
         type: 1,
         memberId:null,
-        state: null,
+        states: null,
         "pager.pageNum": 1,
         "pager.pageSize": 10
       },
@@ -193,10 +221,36 @@ export default {
     this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
     this.userinfo = JSON.parse(window.localStorage.getItem("userinfo"));
     //this.getOrder(this.form);
-    this.onLoad()
+    this.form.states=this.$route.query.type?this.$route.query.type:null
+    if(this.form.states==1){
+      this.onLoad1()
+    }else if(this.form.states==2){
+      this.onLoad2()
+    }else if(this.form.states==3){
+      this.onLoad3()
+    }else{
+      this.form.states=null
+      this.onLoad()
+    }
+    
   },
   methods: {
     onLoad() {
+      //alert(1)
+      this.form.memberId=this.userinfo?this.userinfo.memberId : 2
+      this.getOrder(this.form);
+    },
+    onLoad1() {
+      //alert(1)
+      this.form.memberId=this.userinfo?this.userinfo.memberId : 2
+      this.getOrder(this.form);
+    },
+    onLoad2() {
+      
+      this.form.memberId=this.userinfo?this.userinfo.memberId : 2
+      this.getOrder(this.form);
+    },
+    onLoad3() {
       //alert(1)
       this.form.memberId=this.userinfo?this.userinfo.memberId : 2
       this.getOrder(this.form);
@@ -210,42 +264,112 @@ export default {
       this.$router.push("/submit");
     },
     changeTab(e) {
+     
       this.active = e;
+       this.form["pager.pageNum"]=1
+       this.form.states=e==0?null:e
+       //console.info(e==3 && this.d3)
+      if(e==1 && this.d1){
+      this.d1=false
+      this.onLoad1()
+    }else if(e==2 && this.d2){
+       this.d2=false
+      this.onLoad2()
+    }else if(e==3 && this.d3){
+       this.d3=false
+      this.onLoad3()
+    }else if(e==0 && this.d0 ){
+       this.d0=false
+      this.onLoad()
+     
+    }
     },
     goToPay(e){
       this.$router.push("/online?orderid="+e.orderId)
     },
     getOrder(d) {
+      
       queryOrder(d).then(res => {
         if (!res.code) {
+         
           //this.loaded=true
           if (res.data.length == 0) {
-            this.finished = true;
+            this.loaded=true
+            // console.log("ss"+this.sList.length)
+           if(d.states==1){
+              this.finished1 = true;
+            }else if(d.states==2){
+              this.finished2 = true;
+            }else if(d.states==3){
+              this.finished3 = true;
+            }else{
+              this.finished = true;
+            }
           } else {
-            this.allList = this.allList.concat(res.data);
+            this.loaded=false
+            if(d.states==1){
+              this.fList = this.fList.concat(res.data);
+            }else if(d.states==2){
+              
+              this.sList = this.sList.concat(res.data);
+             
+            }else if(d.states==3){
+              this.tList = this.tList.concat(res.data);
+              
+            }else{
+              this.allList = this.allList.concat(res.data);
+            }
+            
             res.data.forEach(element => {
                 element._num=0
                 element.details.forEach(el=>{
                    element._num +=el.count
                 })
-                if(element.state==1){
-                  this.fList.push(element)
-                }else if(element.state==2){
-                  this.sList.push(element)
-                }else if(element.state==3){
-                  this.tList.push(element)
-                }
+
+                // if(element.state==1){
+                //   this.fList.push(element)
+                // }else if(element.state==2){
+                //   this.sList.push(element)
+                // }else if(element.state==3){
+                //   this.tList.push(element)
+                // }
             });
             this.form["pager.pageNum"] = this.form["pager.pageNum"] + 1;
             //  console.log(this.formLine["pager.pageNum"])
             if (res.data.length < 10) {
+              if(d.states==1){
+              this.finished1 = true;
+            }else if(d.states==2){
+              this.finished2 = true;
+            }else if(d.states==3){
+              this.finished3 = true;
+            }else{
               this.finished = true;
             }
-            this.loading = false;
+            }
+            if(d.states==1){
+              this.loading1 = false;
+            }else if(d.states==2){
+              this.loading2 = false;
+            }else if(d.states==3){
+              this.loading3 = false;
+            }else{
+               this.loading = false;
+            }
+             
           }
          
         } else {
-          this.finished = true;
+          if(d.states==1){
+              this.finished1 = true;
+            }else if(d.states==2){
+              this.finished2 = true;
+            }else if(d.states==3){
+              this.finished3 = true;
+            }else{
+              this.finished = true;
+            }
+             
         }
       });
     }

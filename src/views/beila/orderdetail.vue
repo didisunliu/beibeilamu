@@ -1,18 +1,12 @@
 <template>
     <Layout class="main">
         
-        <van-nav-bar title="确认订单"  left-text="返回" @click-left="goBack"    left-arrow fixed> </van-nav-bar>
+        <van-nav-bar title="订单详情"  left-text="返回" @click-left="goBack"    left-arrow fixed> </van-nav-bar>
         <div class="content">
-          <div class="chooseType">
-            <!-- <van-radio-group v-model="radio" @change="changeFun">
-              <van-radio name="1" class="ddes">自提</van-radio>
-              <van-radio name="2" class="ddes">快递</van-radio>
-            </van-radio-group>  -->
-            <van-tabs type="card" v-model="active" @change="changeFun">
-            <van-tab  title="自提"></van-tab>
-            <van-tab  title="快递"></van-tab>
-            </van-tabs>
-          </div>
+            <div class="orderstatus">
+              <van-icon name="pending-orders" />
+              待支付
+            </div>
           
             <div class="userInfo" v-if="active==0">
                 <p class="hed">收货人：<input type="text" :value="username"> <input type="text" :value="usertel"></p>
@@ -57,34 +51,8 @@
 
 
 
-        <van-submit-bar class="bt"
-  :price="totel+ems"
-  button-text="提交订单"
-  @submit="goOnline"
-/>
-<!-- <van-popup v-model="show" position="bottom" :overlay="true">
-    <div class="out">
-        <p class="p1" v-if="radio==1">此商品需要您到店自提，请仔细确认地址！</p>
-        <p class="p1" v-if="radio==2">此商品需要您要求邮寄，请仔细确认地址！</p>
-        <p class="p2" v-if="radio==1 && shopinfo.distributor">提货地点：{{shopinfo.provinceName+shopinfo.cityName+shopinfo.areaName+shopinfo.distributor.address}} {{shopinfo.distributor.name}}</p>
-        <p class="p3" v-if="radio==1 && shopinfo.distributor">（自提点：{{shopinfo.distributor.address+shopinfo.distributor.shopName}} {{shopinfo.distributor.mobile}}）</p>
-        <p class="p2" v-if="radio==2" > 收货人：{{addressinfo.name}} 
-                        手机：{{addressinfo.mobile}}<br>
-                        收件地址：{{addressinfo.provinceName+addressinfo.cityName+addressinfo.areaName+addressinfo.address}} </p>
-        
-        
-        <p class="p4" v-if="radio==1">09月05号 16:00提货</p>
-        <div class="btbox">
-            <van-row gutter="10">
-                <van-col span="12"><van-button size="large" type="default" plain @click="show=false">取消付款</van-button></van-col>
-                <van-col span="12"><van-button size="large" type="danger" @click="goOnline" plain>确认订单</van-button></van-col>
-            </van-row>
-                      
-            
-            
-        </div>
-    </div>
-  </van-popup> -->
+        <!-- <van-submit-bar class="bt" :price="totel+ems" :button-text="orderstate[]" @submit="goOnline"/> -->
+
     </Layout>
     
     
@@ -126,14 +94,14 @@ export default {
       addressinfo: {},
       imageURL: "/static/images/qq.png",
       wxinfo: null,
-      // userinfo: {
-      //   memberId:2
-      // },
+      userinfo: null,
       totel:null,
       goodsnumber:null,
       goods:[],
       ems:0,
-      you:0
+      you:0,
+      orderstate: ["", "去支付", "待提货", "删除"],
+
     };
   },
   mounted() {
@@ -142,15 +110,13 @@ export default {
     //this.goodsnumber=window.location.href
     this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
     this.userinfo = JSON.parse(window.localStorage.getItem("userinfo"));
+    //this.userinfo.memberId=2
     if(this.userinfo){
       this.username = this.userinfo.name;
       this.usertel = this.userinfo.mobile;
-    }else{
-       this.$router.push("/loginment?redirect_url=submit")
     }
     this.active=this.$route.query.active==1?this.$route.query.active:0
     this.radio=this.$route.query.active==1?2:1
-   
     this.queryShopDes();
     if(this.$route.query.from=="mast"){
      
@@ -176,7 +142,7 @@ export default {
     goToBuy(){
       
       buyNow({
-        memberId :this.userinfo.memberId,
+        memberId :2,//this.userinfo.memberId,
         productId :this.$route.query.pid,
         num :this.$route.query.count
       }).then(res=>{
@@ -206,7 +172,7 @@ export default {
     getMycar() {
  
       enterOrder({
-        memberId:this.userinfo.memberId
+        memberId:2,//this.userinfo.memberId
       }).then(res => {
        // this.orderList = res.data;
        if(this.active==1){
@@ -229,37 +195,21 @@ export default {
         this.CalcTotel();
       });
     },
-    onSubmit() {
-      this.show = true;
-    },
+   
     goBack() {
       this.$router.back(-1);
     },
     goOnline() {
-      
       //this.$router.push("/online?py="+this.$route.query.py)
     //return
       let d={
-          memberId :this.userinfo.memberId,
+          memberId :2,//this.userinfo.memberId,
           distributorId : this.shopinfo.distributor.distributorId,
           deliveryType :this.radio,
           name:this.radio==2?this.addressinfo.name:this.username,
           mobile:this.radio==2?this.addressinfo.mobile:this.usertel,
           deliveryId:this.radio==2?this.addressinfo.id:'',
           details :this.goods
-      }
-      
-      if(!d.name){
-        Toast("请填写收货人姓名");
-        return false;
-      }
-      if(!d.mobile){
-        Toast("请填写收货人手机号码");
-        return false;
-      }
-      if (!/^1[34578]\d{9}$/.test(d.mobile)) {
-       Toast("收货人手机号码错误");
-        return false;
       }
       //this.goodsnumber=JSON.stringify(d)
      // return
@@ -268,8 +218,6 @@ export default {
           if(!res.code){
            // alert(JSON.stringify(res))
               this.$router.push("/online?py="+window.localStorage.getItem("shopcode")+"&orderid="+res.data)
-          }else{
-            Toast(res.msg)
           }
       });
     },
@@ -532,6 +480,17 @@ export default {
     transparent 50%
   );
   background-size: 80px;
+}
+.orderstatus{
+  padding: 10px;
+  font-size: 12px;
+  background-color: #fff;
+  vertical-align: middle;
+  color: #ff0000;
+  i{
+    vertical-align: middle; 
+    color: #ff0000;
+  }
 }
 </style>
 <style rel="stylesheet/scss" lang="scss" >

@@ -14,7 +14,7 @@
                 <van-search placeholder="请输入搜索关键词" v-model="value" @input="onSearch" />
                 
               <div class="infomation clearfix">
-                <img src="/static/images/qq.png" >
+                <img :src="shopDes.head " >
                 <p><label>ID：</label>{{shopDes.distributorId}}</p>
                 <p><label><van-icon name="shop" class="icon" />：</label>{{shopDes.shopName}}</p>
                 <p class="t" v-if="shopDes.provinceName"><label><van-icon name="location" class="icon" />：</label>{{shopDes.provinceName+shopDes.cityName+shopDes.areaName+shopDes.address}}</p>
@@ -29,17 +29,17 @@
         <van-list v-model="loading" :finished="finished" @load="onLoad" :offset="10" class="glist">
             
             <van-cell v-for="(item,index) in list"  class="goodsItem" >
-                <p class="shoptitle">{{item.supplier}}</p>
+                <p class="shoptitle">本商品由{{item.supplier}}专供</p>
                 <p class="" :class="item.state==3 ? 'over' : 'pos' "  @click="goDetail(item.productId)"><img :src="item.mainPictureUrl | Imgurl" class="goodsImg" /> <b class="pos1">{{item.subtitle}}</b> <b class="pos2">{{item.tag}}</b>
                 <span v-if="item.state==3">已售罄</span>
                 </p>
-                <p class="goodsTitle"  @click="goDetail(item.productId)">{{item.title}}   <br><span class="guige">{{item.specification}}</span> </p>
+                <p class="goodsTitle"  @click.stop="goDetail(item.productId)">{{item.title}}   <br><span class="guige">{{item.specification}}</span> </p>
                 <p class="redp clearfix"><template v-if="item.presellTime">预售时间：{{item.presellTime | formatDate}}</template><span>已售 <b>{{item.soldNumber}}</b> 份<template v-if="item.numberType==2">/ 限量{{item.number}}份</template></span></p>
                 <p class="redp clearfix"  v-if="item.pickupTime">提货时间：{{item.pickupTime | formatDate}}</p>
-                <p class="redp clearfix">￥<big>{{item.price*0.01}}</big> <del>￥{{item.originalPrice*0.01}}</del></p>
-                <b :class="isAdd?'like yes':'like'" @click="onClickLike"><van-icon :name="isAdd?'like':'like-o'"      /> <i>{{isAdd?'已关注':'关注'}}</i></b> 
+                <p class="redp clearfix">￥<big>{{(item.price*0.01).toFixed(2)}}</big> <del>￥{{(item.originalPrice*0.01).toFixed(2)}}</del></p>
+                <b :class="item.isAdd?'like yes':'like'" @click="onClickLike(item)"><van-icon :name="item.isAdd?'like':'like-o'"      /> <i>{{item.isAdd?'已关注':'关注'}}</i></b> 
                 <a v-if="item.state==3" class="disable">加入购物车</a>
-                <a v-else @click="addToCar(item)">加入购物车</a>
+                <a v-else @click="addToCar(item)">加入购物车 <span class="point"  v-if="usernums[item.productId]">{{usernums[item.productId]}}</span></a>
                 
             </van-cell>
             
@@ -64,7 +64,8 @@ import {
   addMyCar,
   queryMyCar,
   unsubscribe,
-  subscribe
+  subscribe,
+  isSubscription
 } from "@/iao/home/query";
 import {
   Loading,
@@ -98,6 +99,7 @@ export default {
       value: "",
       fansNum: null,
       soldNum: null,
+      usernums:{},
       formLine: {
         title: null,
         "pager.pageNum": 1,
@@ -107,7 +109,7 @@ export default {
       },
       wxinfo: null,
       userinfo: null,
-      mycar: [],
+      mycar:[],
       shopDes: {},
       shopcode:null
     };
@@ -122,13 +124,15 @@ export default {
     }
     
     if (!this.userinfo) {
-      this.mycar = JSON.parse(window.localStorage.getItem("mycar"));
+      this.mycar = JSON.parse(window.localStorage.getItem("mycar"))?JSON.parse(window.localStorage.getItem("mycar")):[];
 
       if (this.mycar && this.mycar.length > 0) {
         this.mycar.forEach(el => {
           //console.info(el.num)
           this.carNum += el.num;
+          this.usernums[el.productId]=el.num
         });
+        
       }
     } else {
       this.getMycar();
@@ -138,41 +142,51 @@ export default {
   },
 
   methods: {
-    onClickLike(){
-       
-       if (!this.wxinfo.openid){
+    onClickLike(e){
+    
+       if (!this.wxinfo){
           let url =
           "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx43fd4135600dcee3&redirect_uri=" +
           dees.limitUrl +
           "&response_type=code&scope=snsapi_userinfo&state=0#wechat_redirect";
         window.location.href = url;
-       }
-        if(this.isAdd){
-          
-            this.clickSubscribe()
-        }else{
+       }else{
+        
+          if(!e.isAdd){
            
-            this.clickUnsubscribe()
-        }
+              this.clickSubscribe(e)
+              
+          }else{
+           
+              this.clickUnsubscribe(e)
+          }
+       }
+        
     },
-    clickSubscribe() {
+    clickSubscribe(e) {
+     
       if (this.wxinfo.openid) {
         subscribe({
-          productId: this.$route.query.pid,
+          productId: e.productId,
           openId: this.wxinfo.openid
         }).then(res => {
-this.isAdd=!this.isAdd
+          
+            Toast("关注成功")
+            //this.list[this.list.findIndex(v=>v.productId==e.productId)].isAdd=ture
+           e.isAdd=ture
         });
       }
     },
-    clickUnsubscribe() {
-        
+    clickUnsubscribe(e) {
         if (this.wxinfo.openid) {
         unsubscribe({
-          productId: this.$route.query.pid,
+          productId: e.productId,
           openId: this.wxinfo.openid
         }).then(res => {
-            this.isAdd=!this.isAdd
+            Toast("取消成功")
+           // this.list[this.list.findIndex(v=>v.productId==e.productId)].isAdd=true
+         e.isAdd=false
+            
         });
       }
      
@@ -188,28 +202,59 @@ this.isAdd=!this.isAdd
           this.mycar.forEach(el => {
             //console.info(el.num)
             this.carNum += el.num;
+             this.usernums[el.productId]=el.num
           });
         }
       });
     },
     addToCar(e) {
-      this.carNum += 1;
+    
+     if(e.number>0){
+
+     
+      
       if (!this.userinfo) {
-        let goodsIndex = this.mycar.findIndex(
-          good => good.productId == e.productId
-        );
-        if (goodsIndex === -1) {
+        this.carNum += 1;
+        let goodsIndex
+          if(this.mycar){
+             goodsIndex= this.mycar.findIndex( good => good.productId == e.productId);
+          }
+          
+        
+        
+        if (goodsIndex === -1 || !this.mycar) {
           this.mycar.push({
             productId: e.productId,
             num: 1
           });
+           this.usernums[e.productId]= 1
         } else {
-          this.mycar[goodsIndex].num++;
+          if(this.mycar[goodsIndex].num<(e.number-e.soldNumber)){
+            this.mycar[goodsIndex].num++;
+            this.usernums[e.productId]= this.usernums[e.productId]+1
+          }else{
+            this.carNum=this.carNum-1
+            Toast("库存不足")
+          }
+          
         }
-        console.info(window.localStorage.getItem("mycar"));
+       
         window.localStorage.setItem("mycar", JSON.stringify(this.mycar));
+
+        
+        console.log(this.mycar)
       } else {
-        this.addtoMyCar(e);
+        //this.usernums[e.productId]=el.num
+        if(this.usernums[e.productId]<(e.number-e.soldNumber)){
+          this.addtoMyCar(e);
+          this.carNum += 1;
+        }else{
+           Toast("库存不足")
+        }
+        
+      }
+      }else{
+         Toast("库存不足")
       }
     },
     addtoMyCar(e) {
@@ -231,7 +276,19 @@ this.isAdd=!this.isAdd
           if (res.data.length == 0) {
             this.finished = true;
           } else {
-            this.list = res.data;
+            res.data.forEach(e=>{
+              e.isAdd=false
+            })
+            this.list.concat(res.data) ;
+          
+            let productIds=res.data.map(v=>v.productId.toString()).join()
+            
+            if(this.userinfo){
+              this.querySubscription({
+                'openId': this.userinfo.openId, 
+                'productIds': productIds
+              })
+            }
             this.formLine["pager.pageNum"] = this.formLine["pager.pageNum"] + 1;
             //  console.log(this.formLine["pager.pageNum"])
             if (res.data.length < 10) {
@@ -263,7 +320,7 @@ this.isAdd=!this.isAdd
       this.$router.push("/detail?pid=" + d);
     },
     goPage(a) {
-     // alert(a)
+      //alert(this.userinfo)
       if (!this.wxinfo) {
         //alert(1)
         let url =
@@ -284,11 +341,14 @@ this.isAdd=!this.isAdd
       getShopDes({
         py: window.localStorage.getItem("shopcode")
       }).then(res => {
-        //  console.log(res)
-        this.soldNum = res.data.soldNum;
-        this.fansNum = res.data.fansNum;
-        document.title = res.data.distributor.shopName;
-        this.shopDes = res.data.distributor;
+         
+          if(!res.code && res.data){
+            this.soldNum = res.data.soldNum;
+            this.fansNum = res.data.fansNum;
+            document.title = res.data.distributor.shopName;
+            this.shopDes = res.data.distributor;
+          }
+       
       });
     },
     checkout(a) {
@@ -321,27 +381,20 @@ this.isAdd=!this.isAdd
       });
     },
 
-    clickSubscribe(e) {
-      if (this.wxinfo.openid) {
-        subscribe({
-          productId: e.productId,
-          openId: this.wxinfo.openid
-        }).then(res => {
+    
+    //查询是否关注
+    querySubscription(data){
+     //this.value=data.openId
+      isSubscription(data).then(res=>{
+       // alert(JSON.stringify())
+        for(var key in res.data){  
 
-        });
-      }
-    },
-    clickUnsubscribe(e) {
-        if (this.wxinfo.openid) {
-        unsubscribe({
-          productId: e.productId,
-          openId: this.wxinfo.openid
-        }).then(res => {
-            
-        });
-      }
-     
-     
+          let v=this.list.findIndex( good => good.productId == key)
+             if(v>-1){
+               this.list[v].isAdd=true
+             }
+        }   
+      })
     }
   },
   components: {
@@ -354,19 +407,23 @@ this.isAdd=!this.isAdd
     [TabbarItem.name]: TabbarItem,
     [NavBar.name]: NavBar,
     [Icon.name]: Icon
-  },
-  filters: {
-    Imgurl: function(value) {
-      if (!value) return "";
-
-      value = "http://mgr.hnkbmd.com" + value;
-      return value;
-    }
   }
+ 
 };
 </script>
 <style rel="stylesheet/scss" lang="scss" scoped>
-
+.point{
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  text-align: center;
+  border-radius: 50%; 
+  background-color: #fff;
+  float: right;
+  color:#d30000;
+  margin-right: -5px;
+}
 .guige {
   color: #888;
   font-size: 12px;
@@ -415,7 +472,7 @@ this.isAdd=!this.isAdd
   position: absolute;
   right: 100px;
   bottom: 0px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: normal;
   color: #999;
   background: #fff;
@@ -537,6 +594,8 @@ this.isAdd=!this.isAdd
     background: #ff0000;
     color: #fff;
     border-radius: 15px;
+    z-index: 1;
+    font-size: 12px;
   }
   a.disable {
     background: #ddd;

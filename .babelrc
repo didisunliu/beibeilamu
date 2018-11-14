@@ -12,6 +12,7 @@
     "transform-runtime",
     ["import", [{ "libraryName": "vant", "style": true }]]
   ],
+  "comments": false,
   "env": {
     "test": {
       "presets": ["env", "stage-2"],

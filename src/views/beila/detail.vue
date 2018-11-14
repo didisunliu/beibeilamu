@@ -99,7 +99,7 @@
                                 </div> 
                                 <span class="rinkpeople">关注人数:{{productInfo.subscribers}}</span>
                             </div> 
-                            <div class="pickUpTime">
+                            <div class="pickUpTime clearfix">
                                 <p v-if="productInfo.presellTime">预售时间:{{productInfo.presellTime | formatDate}}</p> 
                                 <p v-if="productInfo.pickupTime" >提货时间:{{productInfo.pickupTime | formatDate}} </p> 
                                 <div class="number">
@@ -134,13 +134,13 @@
                         </div>
             </div>
             <div class="record topN" v-if="active==1">
-                <P class="totle">目前共<b>2089</b>人参与购买，商品共销售<b>3055</b>份</P>
+                 <P class="totle">目前共<b>{{members}}</b>人参与购买，商品共销售<b>{{counts}}</b>份</P>
                 <ul class="ullist">
-                    <li v-for="i in 10">
-                        <span class="c0"></span><img src="/static/images/qq.png" ></span>
-                        <span class="c1">浩***</span>
-                        <span class="c2"><b>1</b>份</span>
-                        <span class="c3">2018-09-05 15:12:55</span>
+                    <li v-for="v in ullist">
+                        <span class="c0"></span><img :src="v.head | Imgurl" ></span>
+                        <span class="c1">{{v.name}}</span>
+                        <span class="c2"><b>{{v.count}}</b>份</span>
+                        <span class="c3">{{v.createTime}}</span>
                     </li>
                 </ul>
             </div>
@@ -159,7 +159,7 @@
     
 </template>
 <script>
-import { getProductInfo, getMemberByOpenId,subscribe,unsubscribe,addMyCar,queryMyCar } from "@/iao/home/query";
+import { getProductInfo, getMemberByOpenId,subscribe,unsubscribe,addMyCar,queryMyCar,buyRecord,buyRecordTotal,isSubscription } from "@/iao/home/query";
 import {
   Toast,
   NavBar,
@@ -179,7 +179,7 @@ export default {
 
   data() {
     return {
-      onling: false,
+      onling: true,
       active: 0,
       carNum: null,
       mailSpecial: [],
@@ -197,6 +197,9 @@ export default {
       wxinfo: null,
       userinfo: null,
       mycar: [],
+      members:0,
+      counts:0,
+      ullist:[]
     };
   },
   filters: {
@@ -214,11 +217,41 @@ export default {
     this.userinfo = JSON.parse(window.localStorage.getItem("userinfo"));
     if(this.userinfo){
         
-        this.getMycar()
+        this.getMycar();
+        isSubscription({
+          'openId': this.userinfo.openId, 
+          'productIds': this.$route.query.pid
+        }).then(res=>{
+          for(var key in res.data){  
+
+          let v=this.$route.query.pid== key
+             if(v){
+               this.isAdd=true
+             }
+          } 
+        })
+
     }
     this.value=this.$route.query.count?this.$route.query.count:1
+    this.queryRecordTotal()
+    this.queryRecord()
   },
   methods: {
+    queryRecordTotal(){
+      buyRecordTotal({'productId': this.$route.query.pid}).then(res=>{
+          if(!res.code){
+            this.members=res.data.members
+            this.counts=res.data.counts?res.data.counts:0
+          }
+      })
+    },
+    queryRecord(){
+      buyRecord({'productId': this.$route.query.pid}).then(res=>{
+        if(!res.code){
+            this.ullist=res.data
+          }
+      })
+    },
     countdown(sec) {
       setTimeout(function() {
         var hour = 0;
@@ -249,9 +282,10 @@ export default {
           minute = minute * 1 < 10 && minute * 1 > 0 ? "0" + minute : minute;
           second = second * 1 < 10 && second * 1 > 0 ? "0" + second : second;
           var countdownStr = hour + "：" + minute + "：" + second;
-          document.getElementById(
-            "product-sec-countdown"
-          ).innerHTML = countdownStr;
+          if(document.getElementById("product-sec-countdown")){
+              document.getElementById("product-sec-countdown").innerHTML = countdownStr;
+          }
+          
           //this.timeD=countdownStr
           sec--;
           if (sec <= 0) {
@@ -270,8 +304,10 @@ export default {
 
         this.$nextTick(() => {
           if (d > 0) {
+           
             this.countdown(d); //结束时间到开始时间的时间差，单位秒
           } else {
+            this.onling=false
             //document.getElementById('product-sec-countdown').innerHTML="已结束"
           }
         });
@@ -656,6 +692,7 @@ this.isAdd=!this.isAdd
   padding-top: 0.6rem;
   padding-bottom: 0.6rem;
   margin: 0 0.8rem;
+  min-height: 2.5rem;
 }
 .productContentBox3 .number {
   font-size: 0.55rem;

@@ -53,6 +53,9 @@ export default {
 
     this.wxinfo = JSON.parse(window.localStorage.getItem("wxinfo"));
     this.userinfo = JSON.parse(window.localStorage.getItem("userinfo"));
+    if(!this.userinfo){
+       this.$router.push("/loginment?redirect_url=online")
+    }
     this.crypay();
     this.queryOrder();
   },
@@ -65,7 +68,7 @@ export default {
     },
     crypay() {
       getPay({
-        url: "http://yx.jytzn.com/#/online?orderid=" + this.$route.query.orderid
+        url: window.location.href//"http://yx.jytzn.com/#/online?orderid=" + this.$route.query.orderid
       }).then(res => {
         if (res.code == 0) {
           //通过config接口注入权限验证配置
@@ -105,7 +108,7 @@ export default {
     goWxPay() {
       goPay({
         memberId: this.userinfo.memberId,
-        openId: this.wxinfo.openid || this.userinfo.openId,
+        openId: this.userinfo.openId || this.wxinfo.openid ,
         orderId: this.$route.query.orderid
       }).then(res => {
         if (res.code == 0) {
@@ -118,7 +121,7 @@ export default {
             paySign: data.sign,
             success: function(res1) {
               this.$router.push(
-                "/user?py=" + window.localStorage.getItem("shopcode")
+                "/paysuccess?py=" + window.localStorage.getItem("shopcode")
               );
               // alert(1)
               //alert(JSON.stringify(res1))
